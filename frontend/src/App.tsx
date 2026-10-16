@@ -10,6 +10,7 @@ import { Generation } from './components/Generation'
 import { Editor } from './components/Editor'
 import { CourseLibrary, SourceLibrary } from './components/Library'
 import { Settings } from './components/Settings'
+import { SourceRecovery } from './components/SourceRecovery'
 import { Busy, Notice } from './components/Primitives'
 
 const sessionKey = 'easy-street-workspace-v1'
@@ -30,6 +31,7 @@ export default function App() {
   const [config, setConfig] = useState<Config | null>(null)
   const [courses, setCourses] = useState<Course[]>([])
   const [documents, setDocuments] = useState<DocumentSummary[]>([])
+  const [sourceFile, setSourceFile] = useState<File | undefined>()
   const [document, setDocument] = useState<Document | null>(null)
   const [course, setCourse] = useState<Course | null>(null)
   const [job, setJob] = useState<Job | null>(null)
@@ -90,8 +92,8 @@ export default function App() {
     return () => { active = false; window.clearInterval(timer) }
   }, [job?.id, job?.status, refresh])
   const updateCourse = (updated: Course) => { setCourse(updated); setCourses(current => [updated, ...current.filter(item => item.id !== updated.id)]); remember(updated.id, job?.course_id === updated.id ? job.id : undefined) }
-  function newCourse() { navigationSequence.current++; setBusy(false); setCourse(null); setDocument(null); setJob(null); setStep('upload'); setView('courses'); setList(false); setError(''); remember() }
-  function selectDocument(source: Document) { setDocument(source); setStep('preview'); setList(false); setView('courses'); setDocuments(current => [source, ...current.filter(item => item.id !== source.id)]) }
+  function newCourse() { navigationSequence.current++; setBusy(false); setCourse(null); setDocument(null); setSourceFile(undefined); setJob(null); setStep('upload'); setView('courses'); setList(false); setError(''); remember() }
+  function selectDocument(source: Document, file?: File) { setDocument(source); setSourceFile(file); setCourse(null); setJob(null); remember(); setStep('preview'); setList(false); setView('courses'); setDocuments(current => [source, ...current.filter(item => item.id !== source.id)]) }
   async function openCourse(selected: Course) {
     const sequence = ++navigationSequence.current
     setBusy(true); setError('')
@@ -128,8 +130,8 @@ export default function App() {
   return <Shell view={view} onView={navigate} breadcrumb={breadcrumb}>{navigationBlocked ? <div className="global-error"><Notice tone="error">Save or cancel your edits before leaving the course.</Notice></div> : null}{error ? <div className="global-error"><Notice tone="error">{error}<button className="text-button" onClick={() => { setError(''); void refresh().catch(e => setError(errorMessage(e))) }}>Retry loading workspace</button></Notice></div> : null}{loading ? <div className="app-loading"><Busy label="Opening your local workspace…"/></div> : <>
     {view === 'library' ? <SourceLibrary documents={documents} onOpen={id => void openDocument(id)} onNew={newCourse}/> : null}
     {view === 'settings' ? <Settings config={config} onRefresh={refresh}/> : null}
-    {view === 'courses' && list ? <CourseLibrary courses={courses} onOpen={selected => void openCourse(selected)} onNew={newCourse}/> : null}
-    {view === 'courses' && !list ? <>{step === 'upload' ? <Upload onDocument={selectDocument}/> : null}{step === 'preview' && document ? <DocumentReview document={document} onBack={newCourse} onContinue={() => setStep('options')}/> : null}{step === 'options' && document ? <CourseOptions document={document} config={config} onBack={() => setStep('preview')} onCourse={created => { updateCourse(created); setStep('outline') }}/>: null}{step === 'outline' && course ? <Outline key={course.id} course={course} config={config} onCourse={updateCourse} onDirty={setDirty} busy={busy} onBack={backToCourses} onGenerate={() => generate()}/> : null}{step === 'generation' && job && course ? <Generation job={job} course={course} onJob={acceptJob} onOpen={() => setStep(course.sections.length ? 'editor' : 'outline')}/> : null}{step === 'editor' && course ? <Editor course={course} keyConfigured={config?.key_configured ?? false} document={document} onCourse={updateCourse} onBack={backToCourses} onRegenerate={id => generate(id)} onDirty={setDirty}/> : null}</> : null}
+    {view === 'courses' && list ? <CourseLibrary courses={courses} onOpen={selected => void openCourse(selected)} onNew={newCourse} onCourse={updated => setCourses(current => [updated, ...current.filter(item => item.id !== updated.id)])}/> : null}
+    {view === 'courses' && !list ? <>{course?.source_missing && ['outline', 'editor'].includes(step) ? <SourceRecovery course={course} document={document} disabled={dirty} onAttached={(updated, source) => { updateCourse(updated); setDocument(source) }}/> : null}{step === 'upload' ? <Upload onDocument={selectDocument}/> : null}{step === 'preview' && document ? <DocumentReview key={document.id} document={document} file={sourceFile} ocr={config?.ocr} onDocument={selectDocument} onBack={newCourse} onContinue={() => setStep('options')}/> : null}{step === 'options' && document ? <CourseOptions document={document} config={config} onBack={() => setStep('preview')} onCourse={created => { updateCourse(created); setStep('outline') }}/>: null}{step === 'outline' && course ? <Outline key={course.id} course={course} document={document} config={config} onApproved={() => setStep('editor')} onCourse={updateCourse} onDirty={setDirty} busy={busy} onBack={backToCourses} onGenerate={() => generate()}/> : null}{step === 'generation' && job && course ? <Generation job={job} course={course} onJob={acceptJob} onOpen={() => setStep(course.sections.length ? 'editor' : 'outline')}/> : null}{step === 'editor' && course ? <Editor course={course} onOutline={() => setStep('outline')} keyConfigured={config?.key_configured ?? false} document={document} onCourse={updateCourse} onBack={backToCourses} onRegenerate={id => generate(id)} onDirty={setDirty}/> : null}</> : null}
     {busy && (list || view === 'library') ? <div className="loading-toast" role="status"><Busy label="Opening…"/></div> : null}
   </>}</Shell>
 }

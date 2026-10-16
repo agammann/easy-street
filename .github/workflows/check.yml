@@ -38,6 +38,12 @@ jobs:
         run: |
           python3 -m venv .venv
           .venv/bin/python -m pip install -r backend/requirements-lock.txt
+      - name: Install optional local OCR tools
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tesseract-ocr tesseract-ocr-eng
+          .venv/bin/python -m pip install -r backend/requirements-ocr.txt
       - name: Test backend and integration
         run: .venv/bin/python -m pytest backend/tests tests/integration
       - name: Install frontend
@@ -51,3 +57,15 @@ jobs:
         run: pnpm build
       - name: Test production startup and offline workflow
         run: .venv/bin/python scripts/smoke_startup.py
+      - name: Package downloadable app
+        run: .venv/bin/python scripts/package_release.py --output "$RUNNER_TEMP/easy-street.zip"
+      - name: Test release installation without a frontend build
+        run: .venv/bin/python scripts/smoke_release.py "$RUNNER_TEMP/easy-street.zip"
+      - name: Keep tested release archive
+        if: runner.os == 'Linux'
+        uses: actions/upload-artifact@v4
+        with:
+          name: easy-street-download
+          path: |
+            ${{ runner.temp }}/easy-street.zip
+            ${{ runner.temp }}/easy-street.zip.sha256

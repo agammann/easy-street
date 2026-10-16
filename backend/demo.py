@@ -1,6 +1,8 @@
 """Deterministic material for the original included sample only."""
 from .models import GeneratedCourse, Verification
 
+DEMO_VERSION = "source-scoped-v2"
+
 
 def demo_course(document: dict, questions: int, target_id: str | None = None):
     if not document["is_sample"]:
@@ -39,3 +41,46 @@ def demo_course(document: dict, questions: int, target_id: str | None = None):
     generated = GeneratedCourse(sections=sections)
     verified = Verification(results=[{"section_id":s["id"],"status":"supported","reason":"Authored original-sample offline demonstration; no provider call."} for s in sections])
     return generated, verified
+
+
+def demo_module(document: dict, payload: dict):
+    """Source-scoped, quotation-based demo for editable module distributions."""
+    if not document["is_sample"]:
+        raise ValueError("Offline demo is available only for the original included sample.")
+    passages = payload["passages"]
+    # Keep excerpts literal, including their uncertainty and qualification.
+    excerpts = [{"passage_id":p["id"],"quote":p["text"][:500]} for p in passages]
+    # Short headings remain assigned reading, but use substantive source text
+    # for the study material and questions whenever this module supplies it.
+    substantive_ids = {p["id"] for p in passages if len(p["text"]) >= 80}
+    study_excerpts = [excerpt for excerpt in excerpts if excerpt["passage_id"] in substantive_ids] or excerpts
+    sections = []
+    def add(identifier,kind,title,body,evidence=None,answer=None,explanation=None):
+        sections.append({"id":identifier,"kind":kind,"title":title,"body":body,
+            "evidence":evidence or [],"answer":answer,"explanation":explanation})
+    module = payload["module"]
+    add("objectives","objectives","Proposed learning objectives","\n".join(module["objectives"]))
+    add("introduction","introduction",module["title"],"Read this original source excerpt:\n"+study_excerpts[0]["quote"],[study_excerpts[0]])
+    add("readings","readings","Assigned readings · proposed selection",
+        "Read the selected source passages: "+", ".join(p["location"] for p in passages)+".",excerpts[:12])
+    add("notes","notes","Learning notes","Compare these original excerpts:\n\n"+"\n\n".join(e["quote"] for e in study_excerpts[:12]),study_excerpts[:12])
+    add("announcement","announcement","Proposed module announcement","Read the selected passages and use their source links to check your work.")
+    for index in range(module["assignments"]):
+        excerpt = study_excerpts[index % len(study_excerpts)]
+        add(f"assignment-{index+1}","assignment",f"Proposed written assignment {index+1}",
+            "Explain the following excerpt in your own words, then identify one detail that the excerpt does not establish:\n"+excerpt["quote"],[excerpt])
+        add(f"rubric-{index+1}","rubric",f"Proposed assignment {index+1} rubric",
+            "Source accuracy: 2 points. Distinguishing evidence from inference: 2 points. Clear explanation: 2 points. This is a proposed personal study rubric.")
+    for index in range(module["quizzes"] * payload["options"]["questions_per_quiz"]):
+        excerpt = study_excerpts[index % len(study_excerpts)]
+        passage = next(p for p in passages if p["id"] == excerpt["passage_id"])
+        add(f"quiz-{index+1}","quiz",f"Quiz · question {index+1}",
+            f"Quote a detail stated in {passage['location']} and distinguish it from a conclusion the source does not state.",
+            [excerpt],excerpt["quote"],"Compare your quotation with this exact source excerpt. Any additional conclusion needs separate evidence.")
+    if payload.get("target_section"):
+        target = payload["target_section"]
+        section = next(s for s in sections if s["kind"] == target["kind"])
+        section["id"] = target["id"]
+        sections = [section]
+    return GeneratedCourse(sections=sections),Verification(results=[
+        {"section_id":s["id"],"status":"supported","reason":"Quotation-based original-sample demonstration; no provider call."} for s in sections])

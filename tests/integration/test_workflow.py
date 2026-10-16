@@ -52,7 +52,7 @@ def test_upload_rejects_disguised_pdf_and_empty_text(client):
 
 def test_counts_and_demo_source_are_explicitly_bounded(client):
     document, course = make_course(client)
-    payload = {"document_id": document["id"], "title": "Bounded course", "difficulty": "introductory", "modules": 2, "assignments": 1, "quizzes": 1, "questions_per_quiz": 1, "mode": "demo"}
+    payload = {"document_id": document["id"], "title": "Bounded course", "difficulty": "introductory", "modules": 7, "assignments": 1, "quizzes": 1, "questions_per_quiz": 1, "mode": "demo"}
     response = client.post("/api/courses", json=payload)
     assert 400 <= response.status_code < 500
     uploaded = client.post("/api/documents", files={"file": ("own.txt", b"Private chapter. Sampling means selecting a subset from a population. A biased selection process can systematically miss people. A larger sample alone does not correct that selection process.", "text/plain")}).json()

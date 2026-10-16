@@ -25,7 +25,7 @@ def original_quote(quote: str, source: str) -> str | None:
     return match.group(0) if match else None
 
 
-def validate_structure(generated: GeneratedCourse, questions: int, target: dict | None = None):
+def validate_structure(generated: GeneratedCourse, questions: int, target: dict | None = None, assignments: int = 1, quizzes: int = 1):
     ids = [s.id for s in generated.sections]
     if len(ids) != len(set(ids)):
         raise ValueError("Provider returned duplicate section identifiers.")
@@ -33,8 +33,11 @@ def validate_structure(generated: GeneratedCourse, questions: int, target: dict 
         if len(generated.sections) != 1 or generated.sections[0].id != target["id"] or generated.sections[0].kind != target["kind"]:
             raise ValueError("Regeneration did not preserve the requested section.")
     else:
-        expected = Counter({kind:1 for kind in ["objectives","introduction","readings","notes","announcement","assignment","rubric"]})
-        expected["quiz"] = questions
+        expected = Counter({kind:1 for kind in ["objectives","introduction","readings","notes","announcement"]})
+        if assignments:
+            expected.update(assignment=assignments,rubric=assignments)
+        if quizzes:
+            expected["quiz"] = questions * quizzes
         if Counter(s.kind for s in generated.sections) != expected:
             raise ValueError("Generated section counts do not match the approved course options.")
     for section in generated.sections:

@@ -61,7 +61,7 @@ def test_budget_counts_actual_catalog_schema_and_verifier_quote_expansion():
     assert estimate(payload)["input_tokens_estimate"] == generation_bound + verification_bound + MAX_GENERATION_TOKENS * 32 + expected_expansion
 
 
-def test_catalog_overflow_is_rejected_before_any_job_or_provider_call(tmp_path):
+def test_manually_expanded_catalog_overflow_is_rejected_before_any_job_or_provider_call(tmp_path):
     class NeverCalled:
         def generate(self,payload):
             pytest.fail("Catalog rejection must happen before a paid generation request.")
@@ -72,6 +72,11 @@ def test_catalog_overflow_is_rejected_before_any_job_or_provider_call(tmp_path):
     source = "\n\n".join(["A"] * (MAX_CATALOG_ENTRIES + 1))
     doc = client.post("/api/documents",files={"file":("too-many-passages.txt",source.encode(),"text/plain")}).json()
     course = client.post("/api/courses",json={"document_id":doc["id"],"title":"Bounded catalog","mode":"openai"}).json()
+    # Automatic plans fit the catalog. An explicit edit must still be rejected
+    # before reservation or provider dispatch when it exceeds the catalog limit.
+    modules = course["outline"]["modules"]
+    modules[0]["selected_passage_ids"] = [passage["id"] for passage in doc["passages"]]
+    assert client.patch(f"/api/courses/{course['id']}/outline",json={"modules":modules}).status_code == 200
     assert client.post(f"/api/courses/{course['id']}/approve",json={"provider_disclosure_accepted":True}).status_code == 200
     estimated = client.get(f"/api/courses/{course['id']}/estimate")
     submitted = client.post(f"/api/courses/{course['id']}/generate",json={"idempotency_key":"catalog-overflow-test"})

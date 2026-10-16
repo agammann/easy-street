@@ -46,7 +46,8 @@ def prepare_generation(payload: dict):
     # One enum is reused by every section. The catalog plus the section-kind enum
     # stays below the provider's total enum limit; short IDs bound enum string size.
     evidence_ids = Enum("EvidenceId", {entry["id"]:entry["id"] for entry in catalog}, type=str)
-    fields = {name:(field.annotation,copy.deepcopy(field)) for name,field in GeneratedSection.model_fields.items() if name != "evidence"}
+    # Module/assessment membership comes from the approved plan, not provider output.
+    fields = {name:(field.annotation,copy.deepcopy(field)) for name,field in GeneratedSection.model_fields.items() if name not in ("evidence","module_id","assessment_id")}
     fields["evidence_ids"] = (list[evidence_ids],Field(max_length=12))
     target = payload.get("target_section")
     if target:

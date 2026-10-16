@@ -1,7 +1,8 @@
 import os
+import json
 from pathlib import Path
 from urllib.parse import urlparse
-from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Request
+from fastapi import FastAPI, UploadFile, File, Form, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from fastapi.responses import JSONResponse, Response, FileResponse
@@ -49,13 +50,13 @@ class BoundedRequestBody:
 
 
 def public_job(job):
-    return {k:v for k,v in job.items() if k not in ("generated","verification")}
+    return {k:v for k,v in job.items() if k not in ("generated","verification","module_results")}
 
 
 def create_app(data_dir: Path | None = None, provider=None, budget_limit: float | None = None):
     service = Service(Path(data_dir or os.environ.get("EASY_STREET_DATA_DIR",ROOT / "data")),
                       float(budget_limit if budget_limit is not None else os.environ.get("EASY_STREET_BUDGET_USD","1.00")),provider)
-    app = FastAPI(title="Easy Street",version="0.1.0",docs_url="/api/docs",redoc_url=None)
+    app = FastAPI(title="Easy Street",version="1.0.0",docs_url="/api/docs",redoc_url=None)
     app.state.service = service
     app.add_middleware(CORSMiddleware,allow_origins=ORIGINS,allow_credentials=False,allow_methods=["GET","POST","PATCH"],allow_headers=["Content-Type"])
     app.add_middleware(TrustedHostMiddleware,allowed_hosts=["localhost","127.0.0.1","[::1]"])
@@ -127,18 +128,29 @@ def create_app(data_dir: Path | None = None, provider=None, budget_limit: float 
 
     @app.get("/api/config")
     def config():
+        from .ocr import ocr_capability
         return {"provider":"openai","model":MODEL,"key_configured":service.key_configured,"pricing":PRICING,"budget":service.store.budget(),
-            "milestone":{"modules":1,"assignments":1,"quizzes":1,"max_questions":5},
+            "milestone":{"modules":6,"assignments":6,"quizzes":6,"max_questions":5},
+            "limits":{"modules":6,"assignments":6,"quizzes":6,"max_questions":5,"assignments_per_module":2,"quizzes_per_module":2,"source_chars_per_module":24000},
+            "ocr":ocr_capability(),
             "privacy_notice":"Original files and courses stay on this computer. OpenAI mode sends the selected excerpts to OpenAI for generation and a separate evidence review. Bring your own API key and pay OpenAI directly; the software is free. Use material you have permission to process. Application estimates are not a provider-enforced billing guarantee."}
 
     @app.post("/api/documents")
-    async def upload(file: UploadFile = File(...)):
+    async def upload(file: UploadFile = File(...), ocr_pages: str | None = Form(default=None)):
         # Bounded reads prevent holding an arbitrarily large uploaded body in application memory.
         data = await file.read(MAX_UPLOAD + 1)
         await file.close()
         if len(data) > MAX_UPLOAD:
             raise HTTPException(413,"File exceeds the 15 MiB upload limit.")
-        return service.document(data,file.filename or "upload")
+        pages = None
+        if ocr_pages is not None:
+            try:
+                pages = json.loads(ocr_pages)
+                if not isinstance(pages,list) or not 1 <= len(pages) <= 5 or any(type(page) is not int or not 1 <= page <= 100 for page in pages) or len(pages) != len(set(pages)):
+                    raise ValueError()
+            except (ValueError,TypeError):
+                raise HTTPException(422,"Choose one to five distinct PDF page numbers for local OCR.")
+        return service.document(data,file.filename or "upload",ocr_pages=pages)
 
     @app.post("/api/documents/sample")
     def sample():
@@ -173,13 +185,13 @@ def create_app(data_dir: Path | None = None, provider=None, budget_limit: float 
             course = course_or_404(id)
             editable(id)
             changes = edit.model_dump(exclude_none=True)
-            course["outline"].update(changes)
-            if "title" in changes:
-                course["title"] = changes["title"]
+            service.edit_outline(course,changes)
             course.update(outline_approved=False,status="outline")
             for section in course["sections"]:
                 section["support_status"] = "needs_review"
                 section["review_notes"] = list(dict.fromkeys(section["review_notes"] + ["The course outline changed; review this saved section."]))
+            refresh_review(course)
+            course["status"] = "outline"
             service.store.put_course(course,"Before outline edit")
             return course
 
@@ -253,7 +265,7 @@ def create_app(data_dir: Path | None = None, provider=None, budget_limit: float 
             section["review_notes"] = list(dict.fromkeys(section["review_notes"] + ["Manually edited content needs a fresh source review."]))
             if section["kind"] in ("notes","introduction","objectives","readings"):
                 for dependent in course["sections"]:
-                    if dependent["kind"] in ("assignment","quiz"):
+                    if dependent["kind"] in ("assignment","quiz") and dependent.get("module_id") == section.get("module_id"):
                         dependent["support_status"] = "needs_review"
                         dependent["review_notes"] = list(dict.fromkeys(dependent["review_notes"] + ["A related learning section changed; review this assessment for consistency."]))
             refresh_review(course)
@@ -291,6 +303,9 @@ def create_app(data_dir: Path | None = None, provider=None, budget_limit: float 
     @app.get("/api/usage")
     def usage():
         return {"budget":service.store.budget(),"records":service.store.usage_records()}
+
+    from .workspace import install_workspace_routes
+    install_workspace_routes(app,service)
 
     dist = ROOT / "frontend" / "dist"
     if dist.is_dir():

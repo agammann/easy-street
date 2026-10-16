@@ -24,6 +24,19 @@ class Store:
                 CREATE TABLE IF NOT EXISTS usage(id INTEGER PRIMARY KEY, job_id TEXT, stage TEXT, model TEXT, input_tokens INTEGER, output_tokens INTEGER, cost_usd REAL, status TEXT, created_at TEXT);
                 CREATE TABLE IF NOT EXISTS cache(key TEXT PRIMARY KEY, data TEXT NOT NULL);
             """)
+            # OCR variants share the original file digest but have distinct document
+            # identifiers. Migrate the first release's unique digest without loss.
+            schema = db.execute("SELECT sql FROM sqlite_master WHERE type='table' AND name='documents'").fetchone()[0]
+            if "sha256 TEXT UNIQUE" in schema:
+                db.executescript("""
+                    BEGIN IMMEDIATE;
+                    CREATE TABLE documents_variants(id TEXT PRIMARY KEY, sha256 TEXT, data TEXT NOT NULL);
+                    INSERT INTO documents_variants SELECT id,sha256,data FROM documents;
+                    DROP TABLE documents;
+                    ALTER TABLE documents_variants RENAME TO documents;
+                    CREATE INDEX documents_digest ON documents(sha256);
+                    COMMIT;
+                """)
 
     @contextmanager
     def connect(self):
@@ -49,7 +62,11 @@ class Store:
 
     def put_document(self, value):
         with self.connect() as db:
-            db.execute("INSERT OR IGNORE INTO documents VALUES (?,?,?)", (value["id"],value["sha256"],json.dumps(value)))
+            existing = db.execute("SELECT data FROM documents WHERE id=?",(value["id"],)).fetchone()
+            if existing and json.loads(existing[0]).get("source_missing"):
+                db.execute("UPDATE documents SET sha256=?,data=? WHERE id=?",(value["sha256"],json.dumps(value),value["id"]))
+            else:
+                db.execute("INSERT OR IGNORE INTO documents VALUES (?,?,?)", (value["id"],value["sha256"],json.dumps(value)))
 
     def put_course(self, course, reason=None):
         with self.connect() as db:

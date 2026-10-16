@@ -1,0 +1,2 @@
+# Optional local PDF rendering. Install Tesseract with English data separately.
+pypdfium2==5.14.0

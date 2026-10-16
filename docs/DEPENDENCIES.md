@@ -22,6 +22,18 @@ Dependency source, virtual environments, package-manager caches, and the fronten
 
 Exact transitive versions are recorded in [backend/requirements-lock.txt](../backend/requirements-lock.txt).
 
+## Optional local OCR
+
+DOCX extraction uses Python's standard ZIP and XML libraries and adds no package dependency. Local PDF OCR is an optional installation; ordinary PDF/TXT/DOCX extraction and the offline demo do not require it.
+
+| Component | Version | Declared license |
+| --- | --- | --- |
+| pypdfium2 | 5.14.0, pinned in `backend/requirements-ocr.txt` | Apache-2.0 OR BSD-3-Clause |
+| PDFium bundled by the pypdfium2 wheel | Determined by the wheel | BSD-style license, plus notices for bundled dependencies |
+| Tesseract and English language data | Installed separately using the operating system's package manager | Tesseract: Apache-2.0; language data and binary dependencies retain their own notices |
+
+The [pypdfium2 licensing documentation](https://pypdfium2.readthedocs.io/en/stable/readme.html#licensing) identifies the wrapper's dual license and requires PDFium and bundled dependency notices with binary distributions. The [Tesseract project](https://github.com/tesseract-ocr/tesseract) documents its Apache-2.0 license and local command-line usage. Easy Street invokes the installed Tesseract executable and does not bundle it. Review the licenses of the actual operating-system package or installer before redistributing a binary application; the base dependency graph review above does not cover arbitrary third-party Tesseract installers.
+
 ## Frontend dependencies
 
 | Package | Tested version | Declared license |

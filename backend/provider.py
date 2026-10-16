@@ -7,7 +7,7 @@ from .models import GeneratedCourse, Verification
 from .evidence_catalog import prepare_generation, expand_evidence
 
 MODEL = "gpt-4.1-mini"
-PROMPT_VERSION = "easy-street-1.3"
+PROMPT_VERSION = "easy-street-2.0"
 PRICING = {"input_per_million":0.40,"cached_input_per_million":0.10,"output_per_million":1.60,"updated":"2026-10-15"}
 MAX_GENERATION_TOKENS = 8000
 MAX_VERIFICATION_TOKENS = 3500
@@ -41,11 +41,16 @@ add inferred benefits, causal claims, guarantees, or assurances, even when they 
 Preserve uncertainty: 'may' or 'can' must never become 'ensures', 'always', or another guarantee.
 Structure, objectives, announcements, assignment tasks, and rubrics are proposals; label them as such.
 No accreditation, institutional policies, or invented rules. Make the course useful and concise.
-Follow generation_mode. For full_course, return exactly one section each of kinds objectives, introduction, readings,
-notes, announcement, assignment, rubric, and exactly the requested number of quiz sections.
+Follow generation_mode. For full_course, generate ONLY the current module, returning exactly one
+section each of kinds objectives, introduction, readings, notes, announcement; exactly options.assignments
+assignment sections and the same number of rubric sections; and exactly options.quizzes multiplied by
+options.questions_per_quiz quiz sections. Zero assignments or quizzes means omit those kinds entirely.
+Keep questions for each quiz consecutive, and assignment/rubric pairs in matching order. Course-wide
+totals provide context only; never generate another module. Use the approved module objectives and sources.
 Quiz sections each contain one question in body, its answer in answer, and explanation in explanation.
 Never put quiz answers into the question body. Other sections have null answer and explanation.
 IDs must be unique stable lower-case identifiers; use quiz-1, quiz-2, etc. for questions.
+Keep each section concise (normally under 150 words) so the complete module fits the output limit.
 For regenerate_section return exactly ONE section: the requested target_section, preserving its ID
 and kind. The course outline and course-wide counts provide context; do not regenerate other sections.
 All output is plain text, without HTML. Do not claim any automated verification is infallible."""

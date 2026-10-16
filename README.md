@@ -2,34 +2,134 @@
 
 **Big ideas. Your own way.**
 
-Turn a chapter you already have into an editable personal course. Easy Street runs on your computer: preview the extracted material, approve a proposed outline, then build a lesson, a written assignment with a rubric, and a quiz with a separate answer key.
+Turn reading you already have into an editable personal course. Upload a PDF, DOCX, or text file, inspect its extraction, choose your modules and assessments, approve the outline, and generate one module at a time.
 
 ![An open book becomes a road through colorful hills](frontend/public/learning-road.png)
 
-Easy Street is free software under the MIT license. **You bring your own OpenAI API key and pay OpenAI directly for usage.** There is no bundled developer key, shared billing account, subscription, or required hosted service.
+Easy Street is free, MIT-licensed software that runs on your computer. **Bring your own OpenAI API key and pay OpenAI directly for live generation.** There is no bundled key, shared developer billing account, subscription, or required hosted service. The included offline demo needs no key.
 
-**Single-chapter milestone:** the local workflow, offline demo, and real OpenAI generation and section regeneration have been tested with the included original PDF. Live review also found unsupported wording that the automated verifier missed; review and editing remain required. See the [completion report](COMPLETION_REPORT.md) for the evidence and limitations.
+## Features
 
-## First milestone
+- **1–6 modules**, with a proposed syllabus, course and module objectives, introductions, source-linked readings, notes, and announcements.
+- **0–6 written assignments and 0–6 quizzes as course-wide totals**, with at most two of each per module. Assignments include rubrics; quizzes contain 1–5 questions with separate answers and explanations.
+- Editable module titles, objectives, assessment placement, and source selection, with coverage and repetition warnings before approval.
+- Source inspection, section editing/reordering/regeneration, version history and restore, course archive/unarchive, and JSON course import.
+- Printable learner HTML, a separate answer key, and a structured JSON backup.
+- Local PDF, DOCX, and UTF-8 TXT extraction; optional explicit local OCR for selected PDF pages.
 
-- Upload a readable PDF or UTF-8 TXT chapter and inspect the locally extracted passages.
-- Use stable PDF page references and TXT paragraph references. Text files never receive invented page numbers.
-- Review a locally proposed outline, choose the difficulty and one to five quiz questions, and approve the outline before generation.
-- Generate one module, one written assignment, one rubric, and one quiz. All assessment counts are course-wide totals.
-- Inspect original supporting quotations with **Show source**. The provider selects bounded excerpt IDs; the application inserts the corresponding source text. A separate provider call reviews factual support; missing evidence and detected conflicts are flagged for your review.
-- Edit and reorder sections, save versions, and regenerate an individual section.
-- Export learner HTML, a separate answer key, or a structured JSON backup.
-- Try the included original sample in **Offline demo** mode without a key or network call.
+Source checks and a separate model review can miss unsupported claims. Read the source and review generated content before relying on it or sharing it. Objectives, activities, schedules, and rubrics are proposals, not textbook policies or accreditation. See [verification results and limits](COMPLETION_REPORT.md).
 
-This release deliberately limits each course to one module, one written assignment, and one quiz. Multi-module books, DOCX, selective OCR, additional providers, LMS integration, and automatic grading are future work. The demo uses fixed sample content; it does not demonstrate live model quality.
+## Download and start
 
-## Install and run
+Download **easy-street-1.0.0.zip** from the [latest release](https://github.com/agammann/easy-street/releases/latest), then extract the whole ZIP into a writable folder. This asset includes the built interface: **end users do not need Git, Node.js, or a frontend build**. GitHub's automatic source-code ZIP is a different download and still needs a build.
 
-Install **Git, Python 3.12, and Node.js 22.12 or newer** first. The commands below install pnpm 10 and use the committed dependency snapshots. Docker, local models, and a vector database are not required. Installation needs internet access; the included offline demo does not need an API key.
+1. Install **Python 3.12** from [python.org](https://www.python.org/downloads/). Include the Python launcher on Windows.
+2. Open the extracted `easy-street` folder. On Windows double-click **Easy Street.cmd**. On macOS open **Easy Street.command**, or use the terminal command below. On Linux use the terminal command.
+3. The first run creates a private `.venv` environment and downloads pinned Python dependencies. This setup needs internet access; later starts reuse it.
+4. The app opens at **http://127.0.0.1:8000**. Keep the terminal open while using it. Press **Ctrl+C** there to stop.
 
-### Windows PowerShell
+From the app folder, the equivalent commands are:
 
-Run these commands in PowerShell. They call the virtual environment's Python directly, so activating a script or changing PowerShell's execution policy is unnecessary.
+```powershell
+# Windows PowerShell
+py -3.12 launch.py
+```
+
+```sh
+# macOS / Linux
+python3.12 launch.py
+```
+
+If `python3.12` is unavailable but `python3 --version` reports 3.12, use `python3`. Open a new terminal after installing Python if its command is not found. No PowerShell activation script or execution-policy change is needed. The launcher supports `--no-browser` and `--setup-only`.
+
+### Try a course without a key
+
+1. Choose **Try the sample chapter**.
+2. Inspect the passages, then **Looks good. Shape my course**.
+3. Keep **Offline demo** selected, choose your counts, and **Preview my outline**.
+4. Review module coverage and assessment placement. Approve the outline and review the **$0.00** estimate before generating.
+5. Review the completed course, try **Show source**, edit a section, and export learner HTML or the answer key.
+
+The demo uses prewritten content for the included original garden chapter. It demonstrates the workflow, not live model quality. Your own material can be uploaded and outlined locally without a key; provider generation needs your key.
+
+### Configure your own key and budget
+
+Stop the app and run this from its folder:
+
+```powershell
+# Windows
+py -3.12 launch.py --configure
+```
+
+```sh
+# macOS / Linux
+python3.12 launch.py --configure
+```
+
+The terminal prompt hides the key as you type and saves it in the ignored `.env.local` file. Enter your own key and a cumulative local budget in USD; Enter keeps an existing value. Restart and check **Settings** for the configured-key indicator and allowance.
+
+In Codex, its secure OpenAI key setup flow is also supported. Advanced users can configure `OPENAI_API_KEY` and `EASY_STREET_BUDGET_USD` in the backend environment or edit `.env.local` with a trusted editor. `.env.example` has no key; copy it only if `.env.local` does not already exist.
+
+Never paste keys into chat, courses, the browser interface, issues, or source code. There is no browser key-entry form. Keys are not stored in SQLite, browser storage, or exports. Protect `.env.local` with your operating-system account and backup practices. The default allowance is **$1 per local database**, cumulative rather than per-course or daily.
+
+## Planning and recovery
+
+**Upload → Review extraction → Set options → Approve outline → Generate → Review/edit → Export.** Counts are course-wide totals. Each module supports at most two assignments and two quizzes, so higher totals may require more modules. Adjust their placement without changing the totals.
+
+Each module uses at most **24,000 source characters and 512 evidence excerpts**. Longer source partitions are sampled across their span; omissions are reported before approval. Unselected material is not covered. You can adjust source selection and assessment placement before the first module is generated. After generation begins, those structural choices are locked; titles and objectives remain editable. Complete coverage of an arbitrary book is not promised.
+
+Generation proceeds by module, persisting completed stages and caching outputs by source, settings, model, and prompt version. Section regeneration preserves unrelated manual edits. Changed learning content marks related assessments for review.
+
+After a refresh or restart, select the course in **My courses** to recover its latest job. A safe interrupted job offers **Resume safely**, reusing completed stages. An **uncertain** job cannot automatically resume because repeating it could duplicate a paid request; its remaining reservation stays held. Check the provider dashboard before deliberately starting new work. Cancellation stops later work but may not stop or avoid charges for an in-flight request.
+
+### Backups, versions, and archives
+
+- Export course JSON, then use **Import JSON backup** in My courses to restore it as a new course. Import never overwrites another course and marks imported content for review. JSON includes answers, short evidence quotes, and locations for selected or cited passages; unused source locations, the original file, and complete extracted text are excluded. Reattaching the exact original restores its full extraction.
+- Imported courses can be read, edited, and exported without their original. To inspect complete evidence or regenerate, use **Restore original source** and select the exact original file; its hash and extraction identity must match. OCR-derived sources also need the optional OCR tools, and recognition changes after a tool upgrade may prevent a match.
+- For a completed imported or restored course, choose **Review outline**, approve the checkbox, then **Approve outline & return** before regenerating a section. For an unfinished course, choose **Continue remaining modules**, approve the checkbox, then **Review cost & continue**.
+- To restore older work, choose **Version history**, select a version, then **Restore this version**. The current version is saved first, so restoration can be reversed.
+- Archived courses stay on this device: choose **Archived**, then **Unarchive** to bring one back. Archiving does not erase data or release uncertain reservations.
+
+Local state is in `data/` by default; `EASY_STREET_DATA_DIR` selects another location. For a complete workspace backup, stop the server and back up the entire data directory, including its database and originals. Course JSON is not a full workspace backup. Keep secrets separate from shared backups.
+
+To upgrade, stop the old app, extract the new release into a new folder, and copy `data/` and your private `.env.local` into it. Keep the old folder until saved courses are verified. Do not copy `.venv`; the launcher creates a new one. Preserve custom data-directory configuration instead of copying data twice. Run only **one backend process per data directory**.
+
+## Optional local OCR
+
+Readable PDFs need no OCR. For scanned or poorly extracted pages, the preview shows pages that may need it. OCR is optional, English-only, explicitly selected, and local: **no paid vision service is used**.
+
+Install Tesseract with English language data using its [installation documentation](https://tesseract-ocr.github.io/tessdoc/Installation.html), then install the optional renderer:
+
+```powershell
+# Windows, after Tesseract is installed and on PATH
+.\.venv\Scripts\python.exe -m pip install -r backend/requirements-ocr.txt
+```
+
+```sh
+# macOS, with Homebrew already installed
+brew install tesseract
+.venv/bin/python -m pip install -r backend/requirements-ocr.txt
+
+# Ubuntu / Debian
+sudo apt-get install tesseract-ocr tesseract-ocr-eng
+.venv/bin/python -m pip install -r backend/requirements-ocr.txt
+```
+
+Restart the app, choose up to five pages in the preview, and run local OCR. Changed page selections or recognition output create a separate extraction; identical selections and output reuse the saved extraction. Keep prior page selections to retain their recognized text. Existing course evidence is preserved. When reopening an older source, select its PDF again to OCR it. Review recognized text carefully; formulas, handwriting, tables, and complex layouts remain unreliable.
+
+## Privacy and spending
+
+Original files, extraction, outlines, courses, versions, jobs, and usage stay local. Approving generation sends selected excerpts and course instructions to OpenAI; a separate support review receives the relevant source and generated content. Requests use `store=False`, and provider processing remains subject to its policies. Generation has no web search, outside retrieval, or execution tools. Uploaded text is treated as untrusted data.
+
+The app checks counts, source identifiers, and exact quotations, then asks the provider to assess support. A valid quotation does not prove that every claim follows from it. Missing support and detected conflicts are flagged, but the reviewer is fallible. Human review remains necessary.
+
+Default model: `gpt-4.1-mini`. Pricing checked October 15, 2026: **$0.40/million input tokens, $0.10/million cached input tokens, $1.60/million output tokens**. See [official pricing](https://developers.openai.com/api/docs/models/gpt-4.1-mini). Estimates include generation and verification and conservatively use the full input rate. Recorded costs use provider-reported tokens and are estimates, not invoices.
+
+The app reserves estimated costs and checks the allowance before each call. Automatic SDK retries are disabled. **Local allowances are not provider-enforced billing caps.** The server binds to localhost and checks Host/Origin requests. This is a personal workspace without multi-user authentication; do not expose it to a public network.
+
+## Build from source
+
+Developers need Git, Python 3.12, Node.js 22.12 or newer, and pnpm 10. Release ZIP users do not need Node.js.
 
 ```powershell
 git clone https://github.com/agammann/easy-street.git
@@ -44,12 +144,6 @@ Set-Location ..
 .\.venv\Scripts\python.exe start.py
 ```
 
-If `py` is unavailable, use `python -m venv .venv` after checking that `python --version` reports Python 3.12. If a command is not found after installing Python or Node.js, open a new terminal so it receives the updated PATH.
-
-### macOS or Linux shell
-
-Use a Python 3.12 installation for `python3` in these commands:
-
 ```sh
 git clone https://github.com/agammann/easy-street.git
 cd easy-street
@@ -63,112 +157,40 @@ cd ..
 .venv/bin/python start.py
 ```
 
-The clean install was checked on Windows with Python 3.12.14, Node.js 24.19.0, and pnpm 10.34.7. The repository's automated workflow targets Ubuntu and macOS 15 on both Apple Silicon and Intel, using Python 3.12 and Node.js 22. It creates a fresh Python environment, installs locked dependencies, runs both test suites, builds the frontend, and starts the production server to check the offline workflow and persistence. See [GitHub Actions](https://github.com/agammann/easy-street/actions) for each revision's results and the [completion report](COMPLETION_REPORT.md) for verified coverage. These automated macOS checks do not cover interactive Safari behavior or installing Python and Node.js through their desktop installers.
+Use Python 3.12 for `python3`. Open http://127.0.0.1:8000 manually for `start.py`. For development, stop it, run `.venv/bin/python -m uvicorn backend.app:app --host 127.0.0.1 --port 8000`, and run `pnpm dev` in `frontend/` in a second terminal. On Windows use `.\.venv\Scripts\python.exe` and `pnpm.cmd`. Open http://127.0.0.1:5173. Vite proxies the API to the one Python backend. Rebuild before returning to production startup.
 
-Open **http://127.0.0.1:8000** manually in your browser and leave the terminal running. The Python server serves both the API and the built frontend. Press **Ctrl+C** in that terminal to stop it. To return later, run the final Python startup command again from the repository root; reinstalling or rebuilding is unnecessary unless dependencies or frontend source changed.
-
-### Try a course without an API key
-
-1. Choose **Try the sample chapter** on the start page.
-2. Inspect the extracted passages, then choose **Looks good. Shape my course**.
-3. Keep **Offline demo** selected, choose one to five quiz questions, and select **Preview my outline**.
-4. Review the outline and check its approval box. Select **Review cost & generate**, confirm the estimate is **$0.00**, then select **Approve & generate**.
-5. Select **Review my course**. Try **Show source**, edit a section, and export learner HTML or the separate answer key. **My courses** lets you return to the saved course after a restart.
-
-Offline demo uses fixed content for the included sample only. Generating a course from your own PDF or TXT requires the provider setup below. Uploading a document and preparing its outline remain local and free.
-
-### Configure your own provider
-
-The backend reads `OPENAI_API_KEY` from its environment or the ignored `.env.local` file. Use the secure OpenAI key setup flow when working in Codex. For an ordinary installation, copy `.env.example` to `.env.local` in the repository root and configure your own key locally with a trusted editor. In PowerShell, use `Copy-Item .env.example .env.local`; in a macOS/Linux shell, use `cp .env.example .env.local`. Only copy it when you do not already have `.env.local`, so you do not overwrite existing settings. Never paste a key into chat, a browser form, a course, or a GitHub issue. Restart the server after changing configuration, then check **Settings** for the configured-key indicator.
-
-The example file contains **no key**. Keys never belong in frontend code, browser storage, SQLite, exports, or screenshots. Easy Street has no saved-key feature or key-entry web form. Environment files are local secrets and must be protected by your operating-system account and backup practices.
-
-Local state lives in `data/` by default. To choose another directory, set `EASY_STREET_DATA_DIR` before startup. **Run only one backend server process per data directory**, so job recovery belongs to that server. Stop the production server before starting a development backend against the same data. Keep the database, original-file directory, and environment secrets out of source control. The JSON export does not replace a backup of your local database and documents.
-
-Set `EASY_STREET_BUDGET_USD` in `.env.local` or the server environment to the application spending limit you want for this local database. The default is $1. The Settings screen reports whether a key is configured, pricing assumptions, remaining allowance, and recorded usage. This is a cumulative local allowance, not a per-course or daily limit. Review the estimate before approving each generation or regeneration.
-
-### Development
-
-After installing dependencies, stop any running `start.py` server. Run the FastAPI backend on port 8000 and Vite on port 5173 in separate terminals. Vite is only a frontend development server; it proxies `/api` to the one Python backend.
-
-Windows, from the repository root:
+## Tests
 
 ```powershell
-.\.venv\Scripts\python.exe -m uvicorn backend.app:app --host 127.0.0.1 --port 8000
-```
-
-In a second PowerShell terminal, from the repository root:
-
-```powershell
-Set-Location frontend
-pnpm.cmd dev
-```
-
-On macOS/Linux, use `.venv/bin/python` for the backend command and `cd frontend` followed by `pnpm dev` for the frontend. Open **http://127.0.0.1:5173** for development. After frontend changes, run `pnpm build` in `frontend/` before returning to `start.py`.
-
-The production startup command binds to localhost. Keep the documented ports for the supplied origin protections. Do not expose this application to a public network; it is a personal local workspace without multi-user authentication.
-
-## Privacy and source support
-
-Original files, extracted text, courses, versions, jobs, and usage records are stored locally. Extraction and outline preparation do not send documents to OpenAI. When you approve generation, **selected text excerpts and the requested course structure are sent to OpenAI**, followed by a verification request containing the relevant excerpts and generated content. Requests use `store=False`; provider processing is still subject to the provider's policies. There is no web search or outside retrieval in course generation.
-
-Uploaded text is untrusted data. Embedded instructions are not intended to become application instructions, and the generation provider has no browsing, file, or execution tools. The application checks section counts, source IDs, and exact quotation matches, then asks the provider to check factual support. These checks reduce mistakes; **they cannot guarantee correct or perfectly grounded content**. Read the source and review the course before relying on it or sharing it. Structure, objectives, assignments, announcements, and rubrics are proposals, not textbook policies or accreditation.
-
-PDF layout extraction can miss tables, figures, equations, or scanned content. Warnings and a preview make this visible. This release does not perform OCR or silently invoke a paid vision service. Uploads are bounded to 15 MiB, 100 PDF pages, and 250,000 extracted characters. Generation uses a smaller bounded selection of excerpts; review its coverage before approving.
-
-Use material you have permission to process. Exports omit the original document and complete extracted source by default, but can contain short supporting quotations from your material. The JSON backup includes the answer key; share learner HTML when answers should remain separate. A JSON backup is an export format in this milestone, not an implemented import/restore flow.
-
-## Costs and recovery
-
-The default provider model is `gpt-4.1-mini`. Pricing checked **October 15, 2026**: $0.40 per million input tokens, $0.10 per million cached input tokens, and $1.60 per million output tokens. See the [official model pricing](https://developers.openai.com/api/docs/models/gpt-4.1-mini) and [Structured Outputs documentation](https://developers.openai.com/api/docs/guides/structured-outputs).
-
-Before generation, Easy Street shows a conservative estimate that includes maximum output and the support-verification call. It reserves budget before scheduling work and records provider-reported token usage afterward. Cost calculations use the full input rate conservatively, so provider cache discounts may reduce the actual bill. The local budget is an application guard, **not a provider-enforced billing guarantee**.
-
-Jobs persist in SQLite, and duplicate submissions reuse their job identity. Provider SDK automatic retries are disabled. If a timeout or process interruption leaves a request outcome uncertain, Easy Street preserves its reservation and does not silently repeat the paid request. Cancellation stops later work but cannot guarantee that an in-flight request stops or avoids charges. Review an uncertain request in your provider dashboard before deliberately starting another.
-
-After a browser refresh or server restart, open **My courses** and select the saved course to return to its latest job. An **interrupted** job offers **Resume safely**; the backend checks that no provider request has an uncertain outcome and reuses saved completed stages. An **uncertain** job has no resume action because repeating it could duplicate a paid request. Use **Return to saved course** to review preserved work, and check provider usage before deciding what to do next. A **complete** job offers **Review my course**.
-
-## Tests and release status
-
-After installation, run from the repository root on Windows:
-
-```powershell
+# Windows, from the repository root
 .\.venv\Scripts\python.exe -m pytest backend/tests tests/integration
 Set-Location frontend
 pnpm.cmd test
 pnpm.cmd build
 Set-Location ..
+.\.venv\Scripts\python.exe scripts/smoke_startup.py
 ```
 
-On macOS/Linux, use:
+On macOS/Linux use `.venv/bin/python`, `cd`, and `pnpm` in equivalent commands. Stop the backend before the startup smoke test; it requires port 8000. It uses an isolated temporary copy without keys or saved data and checks assets, extraction, offline generation, exports, and restart persistence. These tests make no paid calls. The real OCR test runs when optional tools are available, otherwise it is explicitly skipped.
 
-```sh
-.venv/bin/python -m pytest backend/tests tests/integration
-cd frontend
-pnpm test
-pnpm build
-cd ..
-```
+[GitHub Actions](https://github.com/agammann/easy-street/actions) runs Ubuntu, Apple Silicon macOS 15, and Intel macOS 15 separately. It packages the download and checks fresh installation from the ZIP without building the frontend. Ubuntu installs optional tools for a real OCR test. Run it from any computer using **Actions → Check Easy Street → Run workflow**.
 
-These test commands do not require an API key or make paid provider calls. They use deterministic fixtures and fake provider responses. A test-suite pass is separate from a live provider-quality review. See [COMPLETION_REPORT.md](COMPLETION_REPORT.md) for the exact verification results and live API status of this release. API behavior is documented in [backend/API_CONTRACT.md](backend/API_CONTRACT.md). The Python dependency snapshot is in `backend/requirements-lock.txt`; the frontend snapshot is in `frontend/pnpm-lock.yaml`. Keep using `pnpm install --frozen-lockfile` to reproduce the verified frontend dependency graph.
+See [COMPLETION_REPORT.md](COMPLETION_REPORT.md) for actual results. Hosted macOS checks do not establish interactive Safari or desktop-installer behavior. API details are in [backend/API_CONTRACT.md](backend/API_CONTRACT.md).
 
-After building the frontend, you can also check the production startup path with `.venv/bin/python scripts/smoke_startup.py` on macOS/Linux or `.\.venv\Scripts\python.exe scripts/smoke_startup.py` on Windows. Stop your running Easy Street server first: the check requires port 8000. It runs a temporary copy without your environment files or saved data, checks PDF extraction, the offline sample, all three exports, and persistence after restart, then stops its server. It does not require a key or make paid requests.
+## Troubleshooting and limits
 
-You can run the macOS checks from any computer: open the repository's **Actions** tab, select **Check Easy Street**, and choose **Run workflow**. Every push and pull request also runs them automatically. The Apple Silicon and Intel jobs are listed separately, so a pass on one architecture is not reported as coverage of both.
+- **Missing Python:** install Python 3.12 and reopen the terminal. Linux may also need its Python venv package.
+- **Missing frontend:** download the release asset `easy-street-1.0.0.zip`, rather than GitHub's automatic source ZIP, or follow source build instructions.
+- **Port 8000 occupied:** stop the other backend with Ctrl+C; use only one server per data directory.
+- **Dependency setup failed:** check internet access and Python version, then rerun. Keep lockfiles intact.
+- **No configured key:** run the private configuration command, check provider access/billing, and restart. Offline demo remains available.
+- **Budget exhausted:** inspect Settings and uncertain reservations before increasing the limit.
+- **Unreadable source:** use a clearer file or explicit local OCR. Encrypted PDFs, legacy `.doc`, macros, and embedded DOCX objects are unsupported.
+- **Review needed:** inspect source evidence and correct unsupported wording. A different source file needs a new course.
+- **Cross-origin blocked:** use documented localhost URLs and ports; do not disable protections for embedding elsewhere.
 
-Project source is MIT licensed. Dependencies retain their own licenses; see [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
+Limits: **15 MiB uploads, 100 PDF pages, 250,000 extracted characters**, additional DOCX archive/XML expansion limits, and five selected OCR pages per upload. Hosted accounts, LMS integration, automatic grading, additional providers, and unrestricted full-book generation are outside this release.
 
-## Troubleshooting
+Use material you have permission to process. Learner HTML is the sharing format when answers must remain separate; JSON and answer keys include answers. Exports omit complete source documents but may include short quotations.
 
-- **The browser page is missing:** run `pnpm build` in `frontend/`, return to the repository root, and start the server with the virtual environment's Python. Open the displayed URL manually.
-- **Port 8000 is already in use:** stop the other Easy Street backend with Ctrl+C, then start only one backend. A development Vite process on port 5173 can run beside it.
-- **PowerShell says a script cannot run:** use the documented `.venv\Scripts\python.exe`, `npm.cmd`, and `pnpm.cmd` commands; activation is not required.
-- **Frozen lockfile installation fails:** use pnpm 10 and the unmodified `package.json` and `pnpm-lock.yaml` from the same checkout. Do not discard the lockfile to hide a dependency mismatch.
-- **Linux cannot create a virtual environment:** install your distribution's Python 3.12 venv support, then rerun the environment creation command.
-- **The provider is unavailable:** configure your own backend key, check your provider account access and billing, then restart. The offline sample remains available.
-- **Budget exhausted:** check Settings and uncertain reservations before raising the local limit. Changing the cap does not change provider-side billing controls.
-- **Unreadable PDF:** use a text-based PDF, a smaller chapter, or a locally OCR-processed copy. Encrypted PDFs are rejected.
-- **A section needs review:** open its source references, correct unsupported text, and keep manual edits. Regeneration saves a previous version and marks dependent material for review.
-- **Cross-origin request blocked:** use `127.0.0.1:8000` in production or the documented Vite development origin. Do not disable origin protection to embed the app in another website.
-
-Easy Street is a working product name; domain and trademark availability have not been verified.
+Project source is MIT licensed. Dependencies keep their own licenses; see [dependency notes](docs/DEPENDENCIES.md) and [built-interface notices](THIRD_PARTY_NOTICES.txt). Easy Street is a working product name; domain and trademark availability have not been verified.
