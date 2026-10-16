@@ -11,13 +11,14 @@ Base `/api`. JSON responses except upload and exports. Errors `{detail: string}`
 - `POST /courses` JSON `{document_id,title,difficulty:"introductory"|"intermediate"|"advanced",modules:1,assignments:1,quizzes:1,questions_per_quiz:1..5,mode:"demo"|"openai"}` → Course. Builds a deterministic source-heading-based proposed outline; no paid call. Demo allowed only for original sample.
 - `GET /courses` → Course[].
 - `GET /courses/{id}` → Course.
+- `GET /courses/{id}/job` → latest public Job or `null`. Use this to restore progress and recovery controls after reloading; saved provider responses and verification payloads are excluded.
 - `PATCH /courses/{id}/outline` `{title?:string,module_title?:string,objectives?:string[]}` → Course; saves version and revokes approval.
 - `POST /courses/{id}/approve` `{provider_disclosure_accepted:true}` → Course.
-- `GET /courses/{id}/estimate?section_id=...` → `{estimated_max_usd:number,input_tokens_estimate:number,output_tokens_limit:number,verification_included:true,pricing:object,budget:object,notice:string}`.
+- `GET /courses/{id}/estimate?section_id=...` → `{estimated_max_usd:number,input_tokens_estimate:number,output_tokens_limit:number,verification_included:true,pricing:object,budget:object,notice:string}`. A reusable cached result has a zero estimate and requires no new provider call or configured key.
 - `POST /courses/{id}/generate` `{idempotency_key:string,section_id?:string}` → Job. Requires approved outline. Omit section_id for initial whole course. Include section_id to regenerate only that section. Duplicate idempotency keys return the original Job. Concurrent jobs for the same course are rejected. Provider calls run in a background job; poll below.
 - `GET /jobs/{id}` → Job.
 - `POST /jobs/{id}/cancel` → Job (an in-flight call can still incur charges).
-- `POST /jobs/{id}/resume` → Job. Safe only when no request has been dispatched; uncertain requests are never automatically repeated.
+- `POST /jobs/{id}/resume` → Job. Only interrupted jobs with no request in flight or uncertain outcome can resume. Saved responses are reused; uncertain requests are never automatically repeated.
 - `PATCH /courses/{id}/sections/{section_id}` `{title?:string,body?:string,answer?:string,explanation?:string}` → Course; saves previous version; edited content is marked for review.
 - `POST /courses/{id}/reorder` `{section_ids:string[]}` → Course. Exact set required.
 - `GET /courses/{id}/versions` → `{id:number,created_at:string,reason:string,course:Course}[]`.
@@ -36,3 +37,5 @@ Job: `{id,course_id,section_id:string|null,status:"queued"|"running"|"complete"|
 Usage: `{id,job_id,stage,model,input_tokens,output_tokens,cost_usd,status:"completed"|"uncertain",created_at}`.
 
 The first milestone supports one module, one assignment, one quiz, and 1–5 questions. Outline creation is local and a proposal. Real generation includes a separate support-validation call; model support judgments remain fallible and user review is required. Unknown billing outcomes preserve the maximum reservation and are not retried automatically.
+
+The configured server entry point is `backend.app:app`. Import `backend.main.create_app` for isolated tests and embedding; importing the factory does not load environment files or open a default database. Run one server process per data directory so restart recovery belongs to that instance.

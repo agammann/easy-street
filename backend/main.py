@@ -1,7 +1,6 @@
 import os
 from pathlib import Path
 from urllib.parse import urlparse
-from dotenv import load_dotenv
 from fastapi import FastAPI, UploadFile, File, HTTPException, BackgroundTasks, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
@@ -17,8 +16,6 @@ from .service import Service, refresh_review
 from .store import now
 
 ROOT = Path(__file__).resolve().parent.parent
-load_dotenv(ROOT / ".env.local",override=False)
-load_dotenv(ROOT / ".env",override=False)
 ORIGINS = [f"http://{host}:{port}" for host in ("localhost","127.0.0.1") for port in (8000,5173)]
 
 
@@ -199,6 +196,12 @@ def create_app(data_dir: Path | None = None, provider=None, budget_limit: float 
     def estimate(id: str, section_id: str | None = None):
         return service.estimate(course_or_404(id),section_id)
 
+    @app.get("/api/courses/{id}/job")
+    def latest_course_job(id: str):
+        course_or_404(id)
+        job = next((job for job in service.store.all("jobs") if job["course_id"] == id),None)
+        return public_job(job) if job else None
+
     @app.post("/api/courses/{id}/generate")
     def generate(id: str, request: GenerateInput, background_tasks: BackgroundTasks):
         job,fresh = service.submit(id,request)
@@ -303,6 +306,3 @@ def create_app(data_dir: Path | None = None, provider=None, budget_limit: float 
                 return FileResponse(asset)
             return FileResponse(dist / "index.html")
     return app
-
-
-app = create_app()

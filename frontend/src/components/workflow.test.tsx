@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { render, screen, waitFor, within } from '@testing-library/react'
+import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Editor } from './Editor'
 import { Outline } from './Outline'
@@ -10,14 +10,14 @@ import App from '../App'
 
 vi.mock('../api', async importOriginal => {
   const original = await importOriginal<typeof import('../api')>()
-  return { ...original, api: { ...original.api, config: vi.fn(), courses: vi.fn(), documents: vi.fn(), course: vi.fn(), document: vi.fn(), job: vi.fn(), saveSection: vi.fn(), reorder: vi.fn(), estimate: vi.fn(), approve: vi.fn(), upload: vi.fn(), sample: vi.fn(), versions: vi.fn() } }
+  return { ...original, api: { ...original.api, config: vi.fn(), courses: vi.fn(), documents: vi.fn(), course: vi.fn(), courseJob: vi.fn(), document: vi.fn(), job: vi.fn(), cancel: vi.fn(), saveSection: vi.fn(), reorder: vi.fn(), estimate: vi.fn(), approve: vi.fn(), updateOutline: vi.fn(), upload: vi.fn(), sample: vi.fn(), versions: vi.fn() } }
 })
 const quiz: Section = { id: 'q1', kind: 'quiz', title: 'Check your understanding', body: 'What should a fair comparison hold constant?', answer: 'ANSWER_CANARY', explanation: 'EXPLANATION_CANARY', evidence: [{ passage_id: 'p1', quote: 'Change one thing.' }], support_status: 'needs_review', review_notes: ['A verifier quoted ANSWER_CANARY.'], edited: false, order: 0 }
 const course: Course = { id: 'c1', document_id: 'd1', title: 'A useful chapter', difficulty: 'introductory', mode: 'demo', options: { modules: 1, assignments: 1, quizzes: 1, questions_per_quiz: 1 }, outline: { title: 'A useful chapter', module_title: 'Make a fair comparison', objectives: ['Compare clearly'], distribution: [{ module: 1, assignments: 1, quizzes: 1, questions: 1 }], warnings: [] }, outline_approved: false, status: 'complete', sections: [quiz], review_flags: ['Global flag leaks ANSWER_CANARY.'], created_at: '2026-10-15T00:00:00Z', updated_at: '2026-10-15T00:00:00Z', version: 1 }
 const document: Document = { id: 'd1', filename: 'chapter.txt', sha256: 'hash', format: 'txt', created_at: course.created_at, warnings: [], is_sample: true, passages: [{ id: 'p1', document_id: 'd1', text: 'Change one thing. <script>alert(1)</script>', location: 'Paragraph 1', page: null, paragraph: 1, heading: 'Fair comparisons' }] }
 const config: Config = { provider: 'openai', model: 'model', key_configured: true, pricing: { input_per_million: 1, output_per_million: 2, cached_input_per_million: 0.1, updated: '2026-10-15' }, budget: { limit_usd: 10, remaining_usd: 10, reserved_usd: 0, spent_usd: 0 }, privacy_notice: '', milestone: { modules: 1, assignments: 1, quizzes: 1, max_questions: 5 } }
 
-beforeEach(() => { vi.clearAllMocks(); localStorage.clear() })
+beforeEach(() => { vi.resetAllMocks(); vi.mocked(api.courseJob).mockResolvedValue(null); localStorage.clear() })
 describe('course review safeguards', () => {
   it('keeps answer fields and verifier answer leaks out of learner view', async () => {
     const user = userEvent.setup()
@@ -94,7 +94,7 @@ describe('course review safeguards', () => {
     await user.type(screen.getByLabelText('Content'), 'Keep this unsaved thought.')
     await user.click(screen.getByRole('button', { name: 'Source library' }))
     expect(screen.getByLabelText('Content')).toHaveValue('Keep this unsaved thought.')
-    expect(screen.getByRole('alert')).toHaveTextContent('Save or cancel your section edits before leaving')
+    expect(screen.getByRole('alert')).toHaveTextContent('Save or cancel your edits before leaving')
     await user.click(screen.getByRole('button', { name: 'Cancel' }))
     await user.click(screen.getByRole('button', { name: 'Source library' }))
     expect(await screen.findByRole('heading', { name: 'Good ideas live here.' })).toBeVisible()
@@ -120,11 +120,133 @@ describe('course review safeguards', () => {
     vi.mocked(api.documents).mockResolvedValue([document])
     vi.mocked(api.document).mockResolvedValue(document)
     vi.mocked(api.course).mockResolvedValueOnce({ ...course, sections: [], status: 'generating' }).mockResolvedValue(course)
-    vi.mocked(api.job).mockResolvedValueOnce(job).mockResolvedValue({ ...job, status: 'complete', stage: 'Complete' })
+    vi.mocked(api.job).mockResolvedValue({ ...job, status: 'complete', stage: 'Complete' })
+    vi.mocked(api.courseJob).mockResolvedValue(job)
     render(<App/>)
     expect(await screen.findByRole('heading', { name: 'Good things are taking shape.' })).toBeVisible()
     await user.click(await screen.findByRole('button', { name: 'Review my course' }, { timeout: 4000 }))
     expect(await screen.findByRole('heading', { name: 'Check your understanding' })).toBeVisible()
     expect(screen.queryByRole('heading', { name: 'A plan worth following.' })).not.toBeInTheDocument()
+  })
+  it('discards cancelled outline edits instead of restoring them next time', async () => {
+    const user = userEvent.setup()
+    render(<Outline course={course} config={config} onCourse={vi.fn()} onGenerate={vi.fn()} onBack={vi.fn()} busy={false}/>)
+    await user.click(screen.getByRole('button', { name: 'Edit outline' }))
+    await user.clear(screen.getByLabelText('Course title'))
+    await user.type(screen.getByLabelText('Course title'), 'Discard this draft')
+    await user.click(screen.getByRole('button', { name: 'Cancel changes' }))
+    await user.click(screen.getByRole('button', { name: 'Edit outline' }))
+    expect(screen.getByLabelText('Course title')).toHaveValue(course.title)
+  })
+  it('prevents navigation from silently discarding outline edits', async () => {
+    const user = userEvent.setup()
+    localStorage.setItem('easy-street-workspace-v1', JSON.stringify({ courseId: 'c1' }))
+    vi.mocked(api.config).mockResolvedValue(config)
+    vi.mocked(api.courses).mockResolvedValue([course])
+    vi.mocked(api.documents).mockResolvedValue([document])
+    vi.mocked(api.course).mockResolvedValue({ ...course, status: 'outline', sections: [] })
+    vi.mocked(api.document).mockResolvedValue(document)
+    render(<App/>)
+    await user.click(await screen.findByRole('button', { name: 'Edit outline' }))
+    await user.clear(screen.getByLabelText('Course title'))
+    await user.type(screen.getByLabelText('Course title'), 'Keep this outline draft')
+    await user.click(screen.getByRole('button', { name: 'Source library' }))
+    expect(screen.getByLabelText('Course title')).toHaveValue('Keep this outline draft')
+    expect(screen.getByRole('alert')).toHaveTextContent('Save or cancel')
+  })
+  it('discovers an active job after its browser job ID has been lost', async () => {
+    const user = userEvent.setup()
+    const generatingCourse = { ...course, status: 'generating', sections: [] }
+    const job = { id: 'j1', course_id: 'c1', section_id: null, status: 'running' as const, stage: 'Generating', error: null, created_at: course.created_at, updated_at: course.updated_at, estimated_max_usd: 0, cancel_requested: false }
+    localStorage.setItem('easy-street-workspace-v1', JSON.stringify({ courseId: 'c1' }))
+    vi.mocked(api.config).mockResolvedValue(config)
+    vi.mocked(api.courses).mockResolvedValue([generatingCourse])
+    vi.mocked(api.documents).mockResolvedValue([document])
+    vi.mocked(api.course).mockResolvedValue(generatingCourse)
+    vi.mocked(api.document).mockResolvedValue(document)
+    vi.mocked(api.courseJob).mockResolvedValue(job)
+    vi.mocked(api.job).mockResolvedValue(job)
+    render(<App/>)
+    expect(await screen.findByRole('heading', { name: 'Good things are taking shape.' })).toBeVisible()
+    await user.click(screen.getByRole('button', { name: 'My courses' }))
+    await user.click(screen.getByRole('button', { name: 'New course' }))
+    await user.click(screen.getByRole('button', { name: 'My courses' }))
+    await user.click(screen.getByRole('button', { name: /A useful chapter/ }))
+    expect(await screen.findByRole('button', { name: 'Cancel generation' })).toBeVisible()
+    expect(api.courseJob).toHaveBeenCalledWith('c1')
+  })
+  it('refreshes course sections when cancellation races with job completion', async () => {
+    const user = userEvent.setup()
+    const job = { id: 'j1', course_id: 'c1', section_id: null, status: 'running' as const, stage: 'Generating', error: null, created_at: course.created_at, updated_at: course.updated_at, estimated_max_usd: 0, cancel_requested: false }
+    localStorage.setItem('easy-street-workspace-v1', JSON.stringify({ courseId: 'c1', jobId: 'j1' }))
+    vi.mocked(api.config).mockResolvedValue(config)
+    vi.mocked(api.courses).mockResolvedValue([course])
+    vi.mocked(api.documents).mockResolvedValue([document])
+    vi.mocked(api.document).mockResolvedValue(document)
+    vi.mocked(api.course).mockResolvedValueOnce({ ...course, sections: [], status: 'generating' }).mockResolvedValue(course)
+    vi.mocked(api.courseJob).mockResolvedValue(job)
+    vi.mocked(api.job).mockResolvedValue(job)
+    vi.mocked(api.cancel).mockResolvedValue({ ...job, status: 'complete', stage: 'Complete' })
+    render(<App/>)
+    await user.click(await screen.findByRole('button', { name: 'Cancel generation' }))
+    await user.click(await screen.findByRole('button', { name: 'Review my course' }))
+    expect(await screen.findByRole('heading', { name: 'Check your understanding' })).toBeVisible()
+  })
+  it('includes the previous quiz explanation in answer-key version history', async () => {
+    const user = userEvent.setup()
+    vi.mocked(api.versions).mockResolvedValue([{ id: 1, created_at: course.created_at, reason: 'Before edit', course }])
+    render(<Editor course={course} document={document} onCourse={vi.fn()} onRegenerate={vi.fn()} onBack={vi.fn()}/>)
+    await user.click(screen.getByRole('button', { name: 'Answer key' }))
+    await user.click(screen.getByRole('button', { name: 'Version history' }))
+    const dialog = await screen.findByRole('dialog')
+    await user.click(within(dialog).getByRole('button', { name: /Before edit/ }))
+    expect(within(dialog).getByText(/EXPLANATION_CANARY/)).toBeVisible()
+  })
+  it('does not reopen a course when its delayed response arrives after navigation', async () => {
+    const user = userEvent.setup()
+    let resolveCourse!: (value: Course) => void
+    vi.mocked(api.config).mockResolvedValue(config)
+    vi.mocked(api.courses).mockResolvedValue([course])
+    vi.mocked(api.documents).mockResolvedValue([document])
+    vi.mocked(api.document).mockResolvedValue(document)
+    vi.mocked(api.course).mockReturnValue(new Promise(resolve => { resolveCourse = resolve }))
+    render(<App/>)
+    await screen.findByRole('heading', { name: /Big ideas/ })
+    await user.click(screen.getByRole('button', { name: 'My courses' }))
+    await user.click(screen.getByRole('button', { name: /A useful chapter/ }))
+    await user.click(screen.getByRole('button', { name: 'Source library' }))
+    await act(async () => { resolveCourse(course) })
+    expect(screen.getByRole('heading', { name: 'Good ideas live here.' })).toBeVisible()
+    expect(screen.queryByRole('heading', { name: 'Check your understanding' })).not.toBeInTheDocument()
+  })
+  it('keeps the latest selected course when requests complete out of order', async () => {
+    const user = userEvent.setup(), second = { ...course, id: 'c2', title: 'The second course' }
+    let resolveFirst!: (value: Course) => void
+    let resolveSecond!: (value: Course) => void
+    const firstResponse = new Promise<Course>(resolve => { resolveFirst = resolve })
+    const secondResponse = new Promise<Course>(resolve => { resolveSecond = resolve })
+    vi.mocked(api.config).mockResolvedValue(config)
+    vi.mocked(api.courses).mockResolvedValue([course, second])
+    vi.mocked(api.documents).mockResolvedValue([document])
+    vi.mocked(api.document).mockResolvedValue(document)
+    vi.mocked(api.course).mockImplementation(id => id === 'c1' ? firstResponse : secondResponse)
+    render(<App/>)
+    await screen.findByRole('heading', { name: /Big ideas/ })
+    await user.click(screen.getByRole('button', { name: 'My courses' }))
+    await user.click(screen.getByRole('button', { name: /A useful chapter/ }))
+    await user.click(screen.getByRole('button', { name: /The second course/ }))
+    await act(async () => { resolveSecond(second) })
+    await act(async () => { resolveFirst(course) })
+    expect(screen.getByRole('heading', { name: 'The second course' })).toBeVisible()
+  })
+  it.each([0, 0.2])('checks the estimate without a key and blocks only a paid step (%s USD)', async maximum => {
+    const user = userEvent.setup()
+    vi.mocked(api.estimate).mockResolvedValue({ estimated_max_usd: maximum, input_tokens_estimate: 0, output_tokens_limit: 1000, verification_included: true, pricing: config.pricing, budget: config.budget, notice: 'Estimate only.' })
+    render(<Outline course={{ ...course, mode: 'openai' }} config={{ ...config, key_configured: false }} onCourse={vi.fn()} onGenerate={vi.fn()} onBack={vi.fn()} busy={false}/>)
+    await user.click(screen.getByRole('checkbox'))
+    await user.click(screen.getByRole('button', { name: /Review cost/ }))
+    const generate = await screen.findByRole('button', { name: 'Approve & generate' })
+    if (maximum === 0) expect(generate).toBeEnabled()
+    else expect(generate).toBeDisabled()
   })
 })

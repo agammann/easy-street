@@ -63,6 +63,12 @@ class Store:
 
     def put_job(self, job, release=False):
         with self.connect() as db:
+            db.execute("BEGIN IMMEDIATE")
+            current = db.execute("SELECT data FROM jobs WHERE id=?",(job["id"],)).fetchone()
+            if current:
+                # Cancellation is sticky. A worker updating an older stage snapshot
+                # must not erase a cancellation that arrived after its last read.
+                job["cancel_requested"] = job["cancel_requested"] or json.loads(current["data"])["cancel_requested"]
             if release:
                 db.execute("UPDATE jobs SET data=?, reservation=0 WHERE id=?", (json.dumps(job),job["id"]))
             else:

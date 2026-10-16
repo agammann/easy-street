@@ -10,13 +10,14 @@ The single-chapter workflow has been exercised with both the deterministic offli
 
 | Check | Result |
 | --- | --- |
-| Backend unit and independent API integration suite | 81 passed |
-| React frontend tests | 8 passed |
+| Backend unit and independent API integration suite | 87 passed |
+| React frontend and API-client tests | 18 passed |
 | TypeScript and production Vite build | Passed |
 | Frontend production and development dependency audit | No known vulnerabilities reported at verification time |
 | Publication file review | No real credentials, private workspace paths, private documents, or runtime databases found in the publication set |
 | Live provider acceptance | 24 checks passed on the original PDF |
 | Independent local evidence-catalog audit | 27 checks passed |
+| Fresh Windows installation and documented startup | Passed without an API key |
 
 The backend suite emits one non-failing upstream Starlette warning about its deprecated HTTPX test transport. Automated tests use the original fixture and deterministic or fake provider responses. They do not establish live model quality.
 
@@ -27,6 +28,21 @@ Provider-boundary tests confirm that supplied document content remains separate 
 The evidence catalog preserves the complete selected source as bounded, contiguous excerpts. The model selects allowed IDs, and application code expands them into original quotations. Unknown IDs and oversized catalogs are rejected. Targeted regeneration uses a schema restricted to one section with its existing ID and kind. Cost bounds include the catalog, response schema, and evidence expansion needed for verification.
 
 Frontend regressions cover the terminal-job transition into the completed course, generation gates, persistence and edit protections, answer separation, source inspection, oversized uploads, and recoverable save failures.
+
+## Follow-up correctness and setup review
+
+A second review reproduced and corrected failures outside the original happy path:
+
+- Persisted jobs can now be rediscovered from their course after browser reload or server restart. Safe interrupted jobs expose resume controls; uncertain requests remain blocked from automatic replay.
+- Cancellation is retained across concurrent stage updates and checked before dispatching a new provider call. Failed or cancelled job cleanup is synchronized with edits so it cannot overwrite a newly saved section.
+- Cached course results report zero cost and remain usable with an exhausted local allowance or no configured key.
+- Importing the application factory no longer opens the default database or changes live jobs. Environment loading and default application startup belong to `backend.app:app`.
+- Cancelled outline drafts are discarded, and unsaved outline edits receive the same navigation protection as section edits. Delayed navigation responses no longer replace a newer selection. Completion arriving during cancellation refreshes the saved course before review opens.
+- The browser retains a pending generation request ID after a lost response, so a deliberate retry can retrieve the original job instead of submitting duplicate work. History previews include quiz explanations in answer-key view.
+
+These changes have focused regressions in the automated suites. Browser checks used a separate local database with deterministic fixtures: a recovered job resumed to a complete ten-section course, an uncertain job offered no resume action, cancelled outline text reset correctly, and navigation preserved unsaved text. A deliberately seeded cached result opened with no configured key, a zero estimate, and no usage records or reservations. The repaired outline flow was also inspected at 390 pixels without document-level horizontal overflow. No additional paid provider requests were made in this review; the earlier live provider results below remain the evidence for model integration and content quality.
+
+The README was tested from a clean copy of publishable source, with a new Python environment and locked frontend dependency installation. Windows verification used Python 3.12.14, Node.js 24.19.0, and pnpm 10.34.7. The exact `start.py` command served the built HTML, script, stylesheet, and artwork, reported no configured key, completed the offline outline/approval/generation flow, produced all three exports, and preserved the course after restart with zero provider usage. The README now includes Windows commands that need no activation script, the frozen-lockfile install, a no-key walkthrough, startup/shutdown and restart instructions, provider configuration, cumulative-budget behavior, recovery controls, test commands, and troubleshooting. macOS desktop startup remains untested.
 
 ## Live provider verification
 

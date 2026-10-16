@@ -90,11 +90,18 @@ class Service:
 
     def estimate(self, course, section_id=None):
         document = self.store.get("documents",course["document_id"])
-        value = estimate(self.payload(course,section_id),bool(section_id),select_passages(document))
-        if course["mode"] == "demo":
+        payload = self.payload(course,section_id)
+        value = estimate(payload,bool(section_id),select_passages(document))
+        cached = self.store.cache_get(self.cache_key(course,payload)) is not None
+        if course["mode"] == "demo" or cached:
             value.update(estimated_max_usd=0,input_tokens_estimate=0,output_tokens_limit=0)
+        if cached:
+            value["notice"] = "The saved generation and evidence review will be reused locally. No new provider calls or charges are required."
         value["budget"] = self.store.budget()
         return value
+
+    def cache_key(self,course,payload):
+        return hashlib.sha256(json.dumps({"payload":payload,"model":MODEL,"mode":course["mode"]},sort_keys=True).encode()).hexdigest()
 
     def submit(self, course_id, request):
         with self.lock:
@@ -115,7 +122,8 @@ class Service:
                 raise ValueError("A generation job is already active for this course.")
             if course["sections"] and not request.section_id:
                 raise ValueError("This course already has saved sections. Regenerate an individual section to preserve your edits.")
-            if course["mode"] == "openai" and not self.key_configured:
+            cached = self.store.cache_get(self.cache_key(course,self.payload(course,request.section_id))) is not None
+            if course["mode"] == "openai" and not self.key_configured and not cached:
                 raise ValueError("Configure OPENAI_API_KEY in the backend environment before generation.")
             maximum = self.estimate(course,request.section_id)["estimated_max_usd"]
             job = {"id":uuid.uuid4().hex,"course_id":course_id,"section_id":request.section_id,"status":"queued","stage":"queued",
@@ -134,12 +142,21 @@ class Service:
         self.store.put_job(job)
 
     def finish_cancel(self, job):
-        self.job_stage(job,"cancelled")
-        job["status"] = "cancelled"
-        self.store.put_job(job,release=True)
-        course = self.store.get("courses",job["course_id"])
-        course["status"] = "needs_review" if course["sections"] else "ready"
-        self.store.put_course(course)
+        with self.lock:
+            self.job_stage(job,"cancelled")
+            job["status"] = "cancelled"
+            self.store.put_job(job,release=True)
+            course = self.store.get("courses",job["course_id"])
+            course["status"] = "needs_review" if course["sections"] else "ready"
+            self.store.put_course(course)
+
+    def begin_provider_call(self,job,stage):
+        with self.lock:
+            if self.store.get("jobs",job["id"])["cancel_requested"]:
+                self.finish_cancel(job)
+                return False
+            self.job_stage(job,stage)
+            return True
 
     def run(self, job_id):
         with self.lock:
@@ -154,10 +171,10 @@ class Service:
         course = self.store.get("courses",job["course_id"])
         document = self.store.get("documents",course["document_id"])
         payload = self.payload(course,job["section_id"])
-        key = hashlib.sha256(json.dumps({"payload":payload,"model":MODEL,"mode":course["mode"]},sort_keys=True).encode()).hexdigest()
+        key = self.cache_key(course,payload)
         cache = self.store.cache_get(key)
         try:
-            if cache:
+            if cache is not None:
                 generated = GeneratedCourse.model_validate(cache["generated"])
                 verification = Verification.model_validate(cache["verification"])
             elif course["mode"] == "demo":
@@ -167,7 +184,8 @@ class Service:
                     generated = GeneratedCourse.model_validate(job["generated"])
                 else:
                     self.store.ensure_call_budget(job_id,cost(UsageCounts(generation_input_bound(payload),MAX_GENERATION_TOKENS)))
-                    self.job_stage(job,"generation_in_flight")
+                    if not self.begin_provider_call(job,"generation_in_flight"):
+                        return
                     generated, usage = self.provider.generate(payload)
                     self.store.usage(job_id,"generation",MODEL,usage,cost(usage))
                     # Persist returned output before moving to the next provider call.
@@ -184,7 +202,8 @@ class Service:
                     verification = Verification.model_validate(job["verification"])
                 else:
                     self.store.ensure_call_budget(job_id,cost(UsageCounts(verification_input_bound(validation_payload),MAX_VERIFICATION_TOKENS)))
-                    self.job_stage(job,"verification_in_flight")
+                    if not self.begin_provider_call(job,"verification_in_flight"):
+                        return
                     verification, usage = self.provider.verify(validation_payload)
                     self.store.usage(job_id,"verification",MODEL,usage,cost(usage))
                     job["verification"] = verification.model_dump()
@@ -214,15 +233,17 @@ class Service:
                 self.store.put_job(job,release=True)
         except Exception:
             # Never return raw provider errors, which may contain source text or credentials.
-            uncertain = job["stage"].endswith("_in_flight")
-            job.update(status="uncertain" if uncertain else "failed",updated_at=now(),
-                error=("Provider completion or billing is uncertain. No automatic retry was made; the remaining maximum cost stays reserved. Check provider usage before starting a new request." if uncertain else
-                       "Generation stopped safely because output validation or the next-step budget check failed. No automatic retry was made. Review your source and options before a new request."))
-            self.store.put_job(job,release=not uncertain)
-            if uncertain:
-                self.store.usage(job_id,job["stage"],MODEL,UsageCounts(0,0),0,"uncertain")
-            course["status"] = "error"
-            self.store.put_course(course)
+            with self.lock:
+                uncertain = job["stage"].endswith("_in_flight")
+                job.update(status="uncertain" if uncertain else "failed",updated_at=now(),
+                    error=("Provider completion or billing is uncertain. No automatic retry was made; the remaining maximum cost stays reserved. Check provider usage before starting a new request." if uncertain else
+                           "Generation stopped safely because output validation or the next-step budget check failed. No automatic retry was made. Review your source and options before a new request."))
+                self.store.put_job(job,release=not uncertain)
+                if uncertain:
+                    self.store.usage(job_id,job["stage"],MODEL,UsageCounts(0,0),0,"uncertain")
+                course = self.store.get("courses",job["course_id"])
+                course["status"] = "error"
+                self.store.put_course(course)
 
 
 def refresh_review(course):

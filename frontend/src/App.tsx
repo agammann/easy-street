@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { api, errorMessage } from './api'
 import type { Config, Course, Document, DocumentSummary, Job, Step, View } from './types'
 import { Shell } from './components/Shell'
@@ -14,7 +14,16 @@ import { Busy, Notice } from './components/Primitives'
 
 const sessionKey = 'easy-street-workspace-v1'
 function remember(courseId?: string, jobId?: string) { try { localStorage.setItem(sessionKey, JSON.stringify({ courseId, jobId })) } catch { /* Storage is optional; server data persists. */ } }
+async function loadCourse(id: string) {
+  const [course, job] = await Promise.all([api.course(id), api.courseJob(id)])
+  const document = await api.document(course.document_id)
+  return { course, document, job }
+}
+function isRecoverableJob(job: Job | null) {
+  return job !== null && ['queued', 'running', 'interrupted', 'uncertain'].includes(job.status)
+}
 export default function App() {
+  const navigationSequence = useRef(0)
   const [view, setView] = useState<View>('courses')
   const [step, setStep] = useState<Step>('upload')
   const [list, setList] = useState(false)
@@ -33,7 +42,27 @@ export default function App() {
   const refresh = useCallback(async () => { const [nextConfig, nextCourses, nextDocuments] = await Promise.all([api.config(), api.courses(), api.documents()]); setConfig(nextConfig); setCourses(nextCourses); setDocuments(nextDocuments) }, [])
   useEffect(() => {
     let active = true
-    async function start() { try { await refresh(); let saved: { courseId?: string; jobId?: string } = {}; try { saved = JSON.parse(localStorage.getItem(sessionKey) || '{}') } catch { /* Ignore invalid UI state. */ } if (saved.courseId) { try { const current = await api.course(saved.courseId); const source = await api.document(current.document_id); if (!active) return; setCourse(current); setDocument(source); setStep(current.sections.length ? 'editor' : 'outline'); if (saved.jobId) { const existing = await api.job(saved.jobId); if (!active) return; setJob(existing); if (['queued', 'running', 'interrupted', 'uncertain'].includes(existing.status)) setStep('generation') } } catch { remember() } } } catch(e) { if (active) setError(errorMessage(e)) } finally { if (active) setLoading(false) } }
+    const sequence = navigationSequence.current
+    async function start() {
+      try {
+        await refresh()
+        let savedId: string | undefined
+        try {
+          const saved: unknown = JSON.parse(localStorage.getItem(sessionKey) || '{}')
+          if (saved && typeof saved === 'object' && 'courseId' in saved && typeof saved.courseId === 'string') savedId = saved.courseId
+        } catch { /* Ignore invalid UI state. */ }
+        if (savedId) {
+          const loaded = await loadCourse(savedId)
+          if (!active || sequence !== navigationSequence.current) return
+          setCourse(loaded.course)
+          setDocument(loaded.document)
+          setJob(loaded.job)
+          setStep(isRecoverableJob(loaded.job) ? 'generation' : loaded.course.sections.length ? 'editor' : 'outline')
+          remember(loaded.course.id, loaded.job?.id)
+        }
+      } catch(e) { if (active) setError(errorMessage(e)) }
+      finally { if (active) setLoading(false) }
+    }
     void start(); return () => { active = false }
   }, [refresh])
   useEffect(() => {
@@ -61,19 +90,46 @@ export default function App() {
     return () => { active = false; window.clearInterval(timer) }
   }, [job?.id, job?.status, refresh])
   const updateCourse = (updated: Course) => { setCourse(updated); setCourses(current => [updated, ...current.filter(item => item.id !== updated.id)]); remember(updated.id, job?.course_id === updated.id ? job.id : undefined) }
-  function newCourse() { setCourse(null); setDocument(null); setJob(null); setStep('upload'); setView('courses'); setList(false); setError(''); remember() }
+  function newCourse() { navigationSequence.current++; setBusy(false); setCourse(null); setDocument(null); setJob(null); setStep('upload'); setView('courses'); setList(false); setError(''); remember() }
   function selectDocument(source: Document) { setDocument(source); setStep('preview'); setList(false); setView('courses'); setDocuments(current => [source, ...current.filter(item => item.id !== source.id)]) }
-  async function openCourse(selected: Course) { setBusy(true); setError(''); try { const [current, source] = await Promise.all([api.course(selected.id), api.document(selected.document_id)]); setCourse(current); setDocument(source); setView('courses'); setList(false); if (job?.course_id === current.id && ['queued', 'running', 'interrupted', 'uncertain'].includes(job.status)) setStep('generation'); else setStep(current.sections.length ? 'editor' : 'outline'); remember(current.id, job?.course_id === current.id ? job.id : undefined) } catch(e) { setError(errorMessage(e)) } finally { setBusy(false) } }
-  async function openDocument(id: string) { setBusy(true); setError(''); try { selectDocument(await api.document(id)) } catch(e) { setError(errorMessage(e)) } finally { setBusy(false) } }
+  async function openCourse(selected: Course) {
+    const sequence = ++navigationSequence.current
+    setBusy(true); setError('')
+    try {
+      const loaded = await loadCourse(selected.id)
+      if (sequence !== navigationSequence.current) return
+      setCourse(loaded.course); setDocument(loaded.document); setJob(loaded.job); setView('courses'); setList(false)
+      setStep(isRecoverableJob(loaded.job) ? 'generation' : loaded.course.sections.length ? 'editor' : 'outline')
+      remember(loaded.course.id, loaded.job?.id)
+    } catch(e) { if (sequence === navigationSequence.current) setError(errorMessage(e)) }
+    finally { if (sequence === navigationSequence.current) setBusy(false) }
+  }
+  async function openDocument(id: string) {
+    const sequence = ++navigationSequence.current
+    setBusy(true); setError('')
+    try { const source = await api.document(id); if (sequence === navigationSequence.current) selectDocument(source) }
+    catch(e) { if (sequence === navigationSequence.current) setError(errorMessage(e)) }
+    finally { if (sequence === navigationSequence.current) setBusy(false) }
+  }
   async function generate(sectionId?: string) { if (!course) return; setBusy(true); try { const next = await api.generate(course.id, sectionId); setJob(next); remember(course.id, next.id); setStep('generation'); void refresh().catch(() => undefined) } finally { setBusy(false) } }
-  function navigate(next: View) { if (dirty) { setNavigationBlocked(true); return } setNavigationBlocked(false); setView(next); setError(''); if (next === 'courses') setList(courses.length > 0); void refresh().catch(e => setError(errorMessage(e))) }
-  function backToCourses() { if (dirty) { setNavigationBlocked(true); return } setNavigationBlocked(false); setList(true); void refresh().catch(e => setError(errorMessage(e))) }
+  async function acceptJob(next: Job) {
+    const sequence = navigationSequence.current
+    if (!['queued', 'running'].includes(next.status)) {
+      const updated = await api.course(next.course_id)
+      if (sequence !== navigationSequence.current) return
+      setCourse(current => current?.id === updated.id ? updated : current)
+      void refresh().catch(() => undefined)
+    }
+    setJob(next)
+  }
+  function navigate(next: View) { if (dirty) { setNavigationBlocked(true); return } navigationSequence.current++; setBusy(false); setNavigationBlocked(false); setView(next); setError(''); if (next === 'courses') setList(courses.length > 0); void refresh().catch(e => setError(errorMessage(e))) }
+  function backToCourses() { if (dirty) { setNavigationBlocked(true); return } navigationSequence.current++; setBusy(false); setNavigationBlocked(false); setList(true); void refresh().catch(e => setError(errorMessage(e))) }
   const breadcrumb = view === 'settings' ? 'Provider & privacy' : view === 'library' ? 'Your materials' : list ? 'Saved courses' : course ? course.title : 'New course'
-  return <Shell view={view} onView={navigate} breadcrumb={breadcrumb}>{navigationBlocked ? <div className="global-error"><Notice tone="error">Save or cancel your section edits before leaving the course.</Notice></div> : null}{error ? <div className="global-error"><Notice tone="error">{error}<button className="text-button" onClick={() => { setError(''); void refresh().catch(e => setError(errorMessage(e))) }}>Retry loading workspace</button></Notice></div> : null}{loading ? <div className="app-loading"><Busy label="Opening your local workspace…"/></div> : <>
+  return <Shell view={view} onView={navigate} breadcrumb={breadcrumb}>{navigationBlocked ? <div className="global-error"><Notice tone="error">Save or cancel your edits before leaving the course.</Notice></div> : null}{error ? <div className="global-error"><Notice tone="error">{error}<button className="text-button" onClick={() => { setError(''); void refresh().catch(e => setError(errorMessage(e))) }}>Retry loading workspace</button></Notice></div> : null}{loading ? <div className="app-loading"><Busy label="Opening your local workspace…"/></div> : <>
     {view === 'library' ? <SourceLibrary documents={documents} onOpen={id => void openDocument(id)} onNew={newCourse}/> : null}
     {view === 'settings' ? <Settings config={config} onRefresh={refresh}/> : null}
     {view === 'courses' && list ? <CourseLibrary courses={courses} onOpen={selected => void openCourse(selected)} onNew={newCourse}/> : null}
-    {view === 'courses' && !list ? <>{step === 'upload' ? <Upload onDocument={selectDocument}/> : null}{step === 'preview' && document ? <DocumentReview document={document} onBack={newCourse} onContinue={() => setStep('options')}/> : null}{step === 'options' && document ? <CourseOptions document={document} config={config} onBack={() => setStep('preview')} onCourse={created => { updateCourse(created); setStep('outline') }}/>: null}{step === 'outline' && course ? <Outline key={course.id} course={course} config={config} onCourse={updateCourse} busy={busy} onBack={backToCourses} onGenerate={() => generate()}/> : null}{step === 'generation' && job && course ? <Generation job={job} course={course} onJob={setJob} onOpen={() => setStep(course.sections.length ? 'editor' : 'outline')}/> : null}{step === 'editor' && course ? <Editor course={course} document={document} onCourse={updateCourse} onBack={backToCourses} onRegenerate={id => generate(id)} onDirty={setDirty}/> : null}</> : null}
+    {view === 'courses' && !list ? <>{step === 'upload' ? <Upload onDocument={selectDocument}/> : null}{step === 'preview' && document ? <DocumentReview document={document} onBack={newCourse} onContinue={() => setStep('options')}/> : null}{step === 'options' && document ? <CourseOptions document={document} config={config} onBack={() => setStep('preview')} onCourse={created => { updateCourse(created); setStep('outline') }}/>: null}{step === 'outline' && course ? <Outline key={course.id} course={course} config={config} onCourse={updateCourse} onDirty={setDirty} busy={busy} onBack={backToCourses} onGenerate={() => generate()}/> : null}{step === 'generation' && job && course ? <Generation job={job} course={course} onJob={acceptJob} onOpen={() => setStep(course.sections.length ? 'editor' : 'outline')}/> : null}{step === 'editor' && course ? <Editor course={course} keyConfigured={config?.key_configured ?? false} document={document} onCourse={updateCourse} onBack={backToCourses} onRegenerate={id => generate(id)} onDirty={setDirty}/> : null}</> : null}
     {busy && (list || view === 'library') ? <div className="loading-toast" role="status"><Busy label="Opening…"/></div> : null}
   </>}</Shell>
 }

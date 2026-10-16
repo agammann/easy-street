@@ -11,19 +11,36 @@ export async function request<T>(path: string, options: RequestInit = {}): Promi
 }
 const post = <T,>(path: string, data?: unknown) => request<T>(path, { method: 'POST', body: JSON.stringify(data ?? {}) })
 const patch = <T,>(path: string, data: unknown) => request<T>(path, { method: 'PATCH', body: JSON.stringify(data) })
+const pendingGenerationIds = new Map<string, string>()
+async function generate(courseId: string, sectionId?: string) {
+  const storageKey = `easy-street-generation-v1:${JSON.stringify([courseId, sectionId ?? null])}`
+  let requestId = pendingGenerationIds.get(storageKey)
+  if (!requestId) {
+    try { requestId = localStorage.getItem(storageKey) || undefined } catch { /* Memory fallback when storage is unavailable. */ }
+  }
+  requestId ||= crypto.randomUUID()
+  pendingGenerationIds.set(storageKey, requestId)
+  try { localStorage.setItem(storageKey, requestId) } catch { /* Keep the in-memory ID for safe retry. */ }
+  // Keep this ID after a transport error: the backend may already have accepted the job.
+  const job = await post<Job>(`/courses/${courseId}/generate`, { idempotency_key: requestId, ...(sectionId ? { section_id: sectionId } : {}) })
+  pendingGenerationIds.delete(storageKey)
+  try { localStorage.removeItem(storageKey) } catch { /* Storage is optional. */ }
+  return job
+}
 export const api = {
   config: () => request<Config>('/config'),
   courses: () => request<Course[]>('/courses'),
   documents: () => request<DocumentSummary[]>('/documents'),
   document: (id: string) => request<Document>(`/documents/${encodeURIComponent(id)}`),
   course: (id: string) => request<Course>(`/courses/${encodeURIComponent(id)}`),
+  courseJob: (id: string) => request<Job | null>(`/courses/${encodeURIComponent(id)}/job`),
   sample: () => post<Document>('/documents/sample'),
   upload: (file: File) => { const body = new FormData(); body.append('file', file); return request<Document>('/documents', { method: 'POST', body }) },
   createCourse: (data: unknown) => post<Course>('/courses', data),
   updateOutline: (id: string, data: unknown) => patch<Course>(`/courses/${id}/outline`, data),
   approve: (id: string) => post<Course>(`/courses/${id}/approve`, { provider_disclosure_accepted: true }),
   estimate: (id: string, sectionId?: string) => request<Estimate>(`/courses/${id}/estimate${sectionId ? `?section_id=${encodeURIComponent(sectionId)}` : ''}`),
-  generate: (id: string, sectionId?: string) => post<Job>(`/courses/${id}/generate`, { idempotency_key: crypto.randomUUID(), ...(sectionId ? { section_id: sectionId } : {}) }),
+  generate,
   job: (id: string) => request<Job>(`/jobs/${id}`),
   cancel: (id: string) => post<Job>(`/jobs/${id}/cancel`),
   resume: (id: string) => post<Job>(`/jobs/${id}/resume`),
