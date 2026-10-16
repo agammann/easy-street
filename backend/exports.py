@@ -1,5 +1,6 @@
 import html
 import json
+from .grounding import proposal_title
 
 
 def export_course(course: dict, format: str, document: dict | None = None):
@@ -16,7 +17,7 @@ def export_course(course: dict, format: str, document: dict | None = None):
     for section in sorted(course["sections"],key=lambda s:s["order"]):
         if answers and section["kind"] != "quiz":
             continue
-        body = f"<h2>{esc(section['title'])}</h2><p>{esc(section['body']).replace(chr(10),'<br>')}</p>"
+        body = f"<h2>{esc(proposal_title(section['kind'], section['title']))}</h2><p>{esc(section['body']).replace(chr(10),'<br>')}</p>"
         if answers:
             body += f"<h3>Answer</h3><p>{esc(section['answer'] or '')}</p><h3>Explanation</h3><p>{esc(section['explanation'] or '')}</p>"
         if section["review_notes"]:

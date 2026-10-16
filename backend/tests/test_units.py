@@ -145,7 +145,7 @@ def test_restart_safe_resume_and_uncertain_request_never_retried(tmp_path):
 
 
 def test_budget_reservation_includes_verification():
-    result = estimate({"passages":[{"text":"Small source"}]})
+    result = estimate({"passages":[{"id":"p1","text":"Small source"}]})
     assert result["verification_included"]
     assert result["estimated_max_usd"] > 0.10
     assert result["output_tokens_limit"] == 11500

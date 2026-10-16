@@ -8,7 +8,7 @@ class StrictModel(BaseModel):
 
 class Evidence(StrictModel):
     passage_id: str = Field(min_length=1, max_length=100)
-    quote: str = Field(min_length=8, max_length=600)
+    quote: str = Field(min_length=1, max_length=600)
 
 
 class GeneratedSection(StrictModel):

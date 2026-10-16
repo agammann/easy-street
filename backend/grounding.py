@@ -1,7 +1,28 @@
 from collections import Counter
+import re
 from .models import GeneratedCourse, Verification
 
 PROPOSALS = {"objectives", "announcement", "rubric"}
+PROPOSAL_LABEL_KINDS = PROPOSALS | {"assignment"}
+
+
+def proposal_title(kind: str, title: str) -> str:
+    if kind in PROPOSAL_LABEL_KINDS and not re.match(r"^proposed(?:\s|[·:—-]|$)", title, re.IGNORECASE):
+        return f"Proposed · {title}"
+    return title
+
+
+def original_quote(quote: str, source: str) -> str | None:
+    """Resolve whitespace-only differences to one exact, contiguous source substring."""
+    if not quote.strip():
+        return None
+    if quote in source:
+        return quote
+    # Each non-whitespace character remains literal. Ellipses cannot omit text,
+    # and punctuation, case, words, and their order are never normalized.
+    pattern = r"\s+".join(re.escape(part) for part in re.split(r"\s+", quote.strip()))
+    match = re.search(pattern, source)
+    return match.group(0) if match else None
 
 
 def validate_structure(generated: GeneratedCourse, questions: int, target: dict | None = None):
@@ -34,15 +55,20 @@ def ground_sections(generated: GeneratedCourse, passages: list[dict], verificati
     grounded = []
     for order, model in enumerate(generated.sections):
         section = model.model_dump()
+        section["title"] = proposal_title(model.kind, model.title)
         notes = []
         if model.kind not in PROPOSALS and not model.evidence:
             notes.append("Missing evidence for factual content or assessment premises.")
-        for evidence in model.evidence:
-            source = sources.get(evidence.passage_id)
+        for evidence in section["evidence"]:
+            source = sources.get(evidence["passage_id"])
             if source is None:
                 notes.append("An evidence reference does not resolve to a selected source passage.")
-            elif evidence.quote not in source["text"]:
-                notes.append("An evidence quote is not an exact match to its source passage.")
+            else:
+                canonical = original_quote(evidence["quote"], source["text"])
+                if canonical is None:
+                    notes.append("An evidence quote is not an exact match to its source passage.")
+                else:
+                    evidence["quote"] = canonical
         result = results.get(model.id)
         if not result or model.id in duplicates:
             notes.append("Independent support validation is missing or ambiguous for this section.")

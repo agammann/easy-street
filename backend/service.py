@@ -8,7 +8,7 @@ from .extraction import extract, select_passages
 from .grounding import ground_sections, validate_structure
 from .models import GeneratedCourse, Verification
 from .provider import (MODEL, PROMPT_VERSION, MAX_GENERATION_TOKENS, MAX_VERIFICATION_TOKENS,
-                       UsageCounts, OpenAIProvider, cost, estimate)
+                       UsageCounts, OpenAIProvider, cost, estimate, generation_input_bound, verification_input_bound)
 from .store import Store, now
 
 
@@ -89,7 +89,8 @@ class Service:
                 "options":course["options"],"outline":course["outline"],"target_section":target,"passages":selected}
 
     def estimate(self, course, section_id=None):
-        value = estimate(self.payload(course,section_id),bool(section_id))
+        document = self.store.get("documents",course["document_id"])
+        value = estimate(self.payload(course,section_id),bool(section_id),select_passages(document))
         if course["mode"] == "demo":
             value.update(estimated_max_usd=0,input_tokens_estimate=0,output_tokens_limit=0)
         value["budget"] = self.store.budget()
@@ -165,7 +166,7 @@ class Service:
                 if "generated" in job:
                     generated = GeneratedCourse.model_validate(job["generated"])
                 else:
-                    self.store.ensure_call_budget(job_id,cost(UsageCounts(len(json.dumps(payload).encode())+16000,MAX_GENERATION_TOKENS)))
+                    self.store.ensure_call_budget(job_id,cost(UsageCounts(generation_input_bound(payload),MAX_GENERATION_TOKENS)))
                     self.job_stage(job,"generation_in_flight")
                     generated, usage = self.provider.generate(payload)
                     self.store.usage(job_id,"generation",MODEL,usage,cost(usage))
@@ -182,7 +183,7 @@ class Service:
                 if "verification" in job:
                     verification = Verification.model_validate(job["verification"])
                 else:
-                    self.store.ensure_call_budget(job_id,cost(UsageCounts(len(json.dumps(validation_payload).encode())+16000,MAX_VERIFICATION_TOKENS)))
+                    self.store.ensure_call_budget(job_id,cost(UsageCounts(verification_input_bound(validation_payload),MAX_VERIFICATION_TOKENS)))
                     self.job_stage(job,"verification_in_flight")
                     verification, usage = self.provider.verify(validation_payload)
                     self.store.usage(job_id,"verification",MODEL,usage,cost(usage))

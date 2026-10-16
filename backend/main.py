@@ -10,6 +10,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 from .extraction import MAX_UPLOAD, SAMPLE_PATH, ExtractionError
 from .exports import export_course
+from .grounding import proposal_title
 from .models import CourseInput, OutlineEdit, Approval, GenerateInput, SectionEdit, ReorderInput
 from .provider import MODEL, PRICING
 from .service import Service, refresh_review
@@ -68,7 +69,15 @@ def create_app(data_dir: Path | None = None, provider=None, budget_limit: float 
         origin = request.headers.get("origin")
         if origin and origin not in ORIGINS:
             return JSONResponse({"detail":"This local application does not accept requests from that origin."},status_code=403)
-        if request.headers.get("sec-fetch-site") == "cross-site":
+        # Opening the app from another page can be a cross-site top-level navigation.
+        # Only the static entry document may load that way; API requests remain blocked.
+        frontend_navigation = (
+            request.method == "GET"
+            and request.url.path in ("/", "/index.html")
+            and request.headers.get("sec-fetch-mode") == "navigate"
+            and request.headers.get("sec-fetch-dest") == "document"
+        )
+        if request.headers.get("sec-fetch-site") == "cross-site" and not frontend_navigation:
             return JSONResponse({"detail":"Cross-site requests to the local application are blocked."},status_code=403)
         size = request.headers.get("content-length")
         if size:
@@ -237,6 +246,7 @@ def create_app(data_dir: Path | None = None, provider=None, budget_limit: float 
             if section["kind"] != "quiz" and any(changes.get(k) is not None for k in ("answer","explanation")):
                 raise HTTPException(422,"Only quiz sections have answer-key fields.")
             section.update(changes,edited=True,support_status="needs_review")
+            section["title"] = proposal_title(section["kind"], section["title"])
             section["review_notes"] = list(dict.fromkeys(section["review_notes"] + ["Manually edited content needs a fresh source review."]))
             if section["kind"] in ("notes","introduction","objectives","readings"):
                 for dependent in course["sections"]:

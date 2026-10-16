@@ -8,7 +8,7 @@ Turn a chapter you already have into an editable personal course. Easy Street ru
 
 Easy Street is free software under the MIT license. **You bring your own OpenAI API key and pay OpenAI directly for usage.** There is no bundled developer key, shared billing account, subscription, or required hosted service.
 
-**Development preview:** the local workflow and offline demo are tested. Real OpenAI generation has not yet been verified with a live API key. See the [completion report](COMPLETION_REPORT.md) for the tested scope and remaining acceptance check.
+**Single-chapter milestone:** the local workflow, offline demo, and real OpenAI generation and section regeneration have been tested with the included original PDF. Live review also found unsupported wording that the automated verifier missed; review and editing remain required. See the [completion report](COMPLETION_REPORT.md) for the evidence and limitations.
 
 ## First milestone
 
@@ -16,7 +16,7 @@ Easy Street is free software under the MIT license. **You bring your own OpenAI 
 - Use stable PDF page references and TXT paragraph references. Text files never receive invented page numbers.
 - Review a locally proposed outline, choose the difficulty and one to five quiz questions, and approve the outline before generation.
 - Generate one module, one written assignment, one rubric, and one quiz. All assessment counts are course-wide totals.
-- Inspect supporting quotations with **Show source**. A separate provider call reviews factual support; missing evidence and conflicts are flagged for your review.
+- Inspect original supporting quotations with **Show source**. The provider selects bounded excerpt IDs; the application inserts the corresponding source text. A separate provider call reviews factual support; missing evidence and detected conflicts are flagged for your review.
 - Edit and reorder sections, save versions, and regenerate an individual section.
 - Export learner HTML, a separate answer key, or a structured JSON backup.
 - Try the included original sample in **Offline demo** mode without a key or network call.
