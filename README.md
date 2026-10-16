@@ -63,7 +63,7 @@ cd ..
 .venv/bin/python start.py
 ```
 
-The clean install was checked on Windows with Python 3.12.14, Node.js 24.19.0, and pnpm 10.34.7. The repository's automated workflow targets Ubuntu with Python 3.12 and Node.js 22; macOS desktop startup has not been tested. See the [completion report](COMPLETION_REPORT.md) for the current results.
+The clean install was checked on Windows with Python 3.12.14, Node.js 24.19.0, and pnpm 10.34.7. The repository's automated workflow targets Ubuntu and macOS 15 on both Apple Silicon and Intel, using Python 3.12 and Node.js 22. It creates a fresh Python environment, installs locked dependencies, runs both test suites, builds the frontend, and starts the production server to check the offline workflow and persistence. See [GitHub Actions](https://github.com/agammann/easy-street/actions) for each revision's results and the [completion report](COMPLETION_REPORT.md) for verified coverage. These automated macOS checks do not cover interactive Safari behavior or installing Python and Node.js through their desktop installers.
 
 Open **http://127.0.0.1:8000** manually in your browser and leave the terminal running. The Python server serves both the API and the built frontend. Press **Ctrl+C** in that terminal to stop it. To return later, run the final Python startup command again from the repository root; reinstalling or rebuilding is unnecessary unless dependencies or frontend source changed.
 
@@ -151,6 +151,10 @@ cd ..
 ```
 
 These test commands do not require an API key or make paid provider calls. They use deterministic fixtures and fake provider responses. A test-suite pass is separate from a live provider-quality review. See [COMPLETION_REPORT.md](COMPLETION_REPORT.md) for the exact verification results and live API status of this release. API behavior is documented in [backend/API_CONTRACT.md](backend/API_CONTRACT.md). The Python dependency snapshot is in `backend/requirements-lock.txt`; the frontend snapshot is in `frontend/pnpm-lock.yaml`. Keep using `pnpm install --frozen-lockfile` to reproduce the verified frontend dependency graph.
+
+After building the frontend, you can also check the production startup path with `.venv/bin/python scripts/smoke_startup.py` on macOS/Linux or `.\.venv\Scripts\python.exe scripts/smoke_startup.py` on Windows. Stop your running Easy Street server first: the check requires port 8000. It runs a temporary copy without your environment files or saved data, checks PDF extraction, the offline sample, all three exports, and persistence after restart, then stops its server. It does not require a key or make paid requests.
+
+You can run the macOS checks from any computer: open the repository's **Actions** tab, select **Check Easy Street**, and choose **Run workflow**. Every push and pull request also runs them automatically. The Apple Silicon and Intel jobs are listed separately, so a pass on one architecture is not reported as coverage of both.
 
 Project source is MIT licensed. Dependencies retain their own licenses; see [docs/DEPENDENCIES.md](docs/DEPENDENCIES.md).
 
