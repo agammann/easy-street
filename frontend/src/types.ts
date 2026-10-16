@@ -1,0 +1,14 @@
+export type Budget = { limit_usd: number; spent_usd: number; reserved_usd: number; remaining_usd: number }
+export type Pricing = { input_per_million: number; output_per_million: number; cached_input_per_million: number; updated: string }
+export type Config = { provider: string; model: string; key_configured: boolean; pricing: Pricing; budget: Budget; privacy_notice: string; milestone: { modules: number; assignments: number; quizzes: number; max_questions: number } }
+export type Passage = { id: string; document_id: string; text: string; location: string; page: number | null; paragraph: number; heading: string }
+export type Document = { id: string; filename: string; sha256: string; format: string; created_at: string; passages: Passage[]; warnings: string[]; is_sample: boolean; cached?: boolean }
+export type DocumentSummary = Omit<Document, 'passages'>
+export type Section = { id: string; kind: string; title: string; body: string; answer: string | null; explanation: string | null; evidence: { passage_id: string; quote: string }[]; support_status: 'supported' | 'needs_review' | 'proposal'; review_notes: string[]; edited: boolean; order: number }
+export type Course = { id: string; document_id: string; title: string; difficulty: string; mode: 'demo' | 'openai'; options: { modules: number; assignments: number; quizzes: number; questions_per_quiz: number }; outline: { title: string; module_title: string; objectives: string[]; distribution: { module: number; assignments: number; quizzes: number; questions: number }[]; warnings: string[]; selected_passage_ids?: string[] }; outline_approved: boolean; status: string; sections: Section[]; review_flags: string[]; created_at: string; updated_at: string; version: number }
+export type Job = { id: string; course_id: string; section_id: string | null; status: 'queued' | 'running' | 'complete' | 'failed' | 'uncertain' | 'cancelled' | 'interrupted'; stage: string; error: string | null; created_at: string; updated_at: string; estimated_max_usd: number; cancel_requested: boolean }
+export type Estimate = { estimated_max_usd: number; input_tokens_estimate: number; output_tokens_limit: number; verification_included: boolean; pricing: Pricing; budget: Budget; notice: string }
+export type Version = { id: number; created_at: string; reason: string; course: Course }
+export type Usage = { id: number; job_id: string; stage: string; model: string; input_tokens: number; output_tokens: number; cost_usd: number; status: string; created_at: string }
+export type View = 'courses' | 'library' | 'settings'
+export type Step = 'upload' | 'preview' | 'options' | 'outline' | 'generation' | 'editor'
