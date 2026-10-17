@@ -1,6 +1,6 @@
-# Easy Street — Devpost draft
+# Easy Street — Devpost entry record
 
-Entry draft for review, included on the public hackathon branch. It has not been submitted to Devpost. Replace the remaining verification fields with measured results before using this as the final entry. Two local real Nebius runs and a funded hosted sample passed technical checks, including revised prompt v2.1. The [working Fly deployment](https://easy-street-agammann-2026.fly.dev) is active. Content support still requires owner review; do not portray a completed job as final content acceptance. No Devpost entry was modified or submitted by this preparation.
+The entry was submitted on October 16, 2026 after the owner's explicit final agreement and submission approval. Devpost displayed **Project submitted!** and listed the hackathon under **Submitted To**. The [public entry](https://devpost.com/software/easy-street) includes the working demo, public source branch and [public 2:23 YouTube demo](https://youtu.be/32g2rKhPAuE). The application access code is supplied only in the judge/organizer-only attachment. This file retains the preparation narrative and technical evidence; the public entry uses a shorter first-person story. Content-support warnings remain visible and are not a certification of teaching accuracy.
 
 ## Project name
 
@@ -64,24 +64,24 @@ Easy Street v1.0.0 existed before this hackathon adaptation. Its repository hist
 
 ## Final submission fields
 
-| Field | Value before submission |
+| Field | Submitted arrangement |
 | --- | --- |
 | Tested public source revision | [0c010c00c160e1cb47c60eea7f758050c23a3831](https://github.com/agammann/easy-street/commit/0c010c00c160e1cb47c60eea7f758050c23a3831), the deployed privacy/configuration follow-up on the [hackathon branch](https://github.com/agammann/easy-street/tree/hackathon/nebius-nemotron-2026); [draft PR #1](https://github.com/agammann/easy-street/pull/1) remains open, not merged/released. [CI run 38999513875](https://github.com/agammann/easy-street/actions/runs/38999513875) fully passed all three OS runners through Python-only ZIP installation. The first funded hosted generation ran on `0e0c17d`; this follow-up changes no provider backend and makes no additional inference claim. Later documentation is separate; see [verification](VERIFICATION.md). |
-| Working judging URL | [https://easy-street-agammann-2026.fly.dev](https://easy-street-agammann-2026.fly.dev), deployed with approved bounded funding; private judge-code placement and ongoing operation through December 15 remain gates |
-| Public YouTube URL | Pending recording and publication approval |
+| Working judging URL | [https://easy-street-agammann-2026.fly.dev](https://easy-street-agammann-2026.fly.dev), deployed with approved bounded funding; private testing attachment saved; ongoing operation remains an operator responsibility through December 15, noon Pacific |
+| Public YouTube URL | [Easy Street demo](https://youtu.be/32g2rKhPAuE), public, 2:23, English captions; approved upload/terms/publication completed |
 | Exact Nemotron model and approved live evidence | `nvidia/nemotron-3-super-120b-a12b` verified by the authenticated catalog and three actual local/hosted jobs, including v2.1; owner content acceptance remains pending |
-| Contact for access failures | Owner must provide a monitored route |
-| Judge credentials | Put only in Devpost's private testing instructions, never this public file |
+| Contact for access failures | The private instructions direct judges to the entrant's [Devpost profile](https://devpost.com/agammann); no personal email is published |
+| Judge credentials | Supplied in Devpost's judge/organizer-only attachment; no provider/operator key is included |
 
 ## Private judge testing instructions template
 
-This section is a template. The URL and observed timing below are real; fill the private access credential and contact before submission; keep any completed credential version out of Git.
+The submitted private attachment follows this workflow and includes only the application access code. The public version below omits that credential. Keep the completed attachment out of Git.
 
 1. Open **[Easy Street](https://easy-street-agammann-2026.fly.dev)** in a fresh browser window. Use **[private judging credential supplied in this testing field]** if prompted. No provider account, payment, or personal API key is required.
 2. Choose **Generate sample with Nebius** for the one-click original licensed chapter workflow; review its source/provider disclosure and expect variable timing: the observed uncached hosted job completed in **15.8418 seconds**, with no guaranteed wait. It uses preset small-course settings and skips the manual outline steps below.
 3. For configurable generation, instead choose **Try the sample chapter**, or upload a chapter you have permission to process. Inspect extraction, choose modules and assessment counts, review the proposed outline/source disclosure, approve, and start generation. The screen identifies Nebius/Nemotron.
 4. Open a generated section's source evidence. Compare its statement and quote, inspect review warnings, and edit a sentence. Try regenerating one section.
 5. Export learner HTML and the separate answer key. Delete your workspace when finished. Active workspace retention is **24 hours**; normal maintenance removed a deliberately expired hosted test fixture. This did not wait a real 24 hours. Active work may delay cleanup, and the Fly volume reports five-day snapshot retention; application deletion does not instantly erase any backup copies.
-6. If access or generation is unavailable, contact **[monitored owner route]**. A spending cutoff pauses generation and needs operator intervention; it must not be presented as normal successful judging.
+6. If access or generation is unavailable, use the entrant's [Devpost profile](https://devpost.com/agammann). A spending cutoff pauses generation and needs operator intervention; it must not be presented as normal successful judging.
 
-The testing-access arrangement must stay available without payment or BYO keys through December 15, 2026, noon Pacific, per the [official rules](https://nebiusglobalaihackathon.devpost.com/rules). Publish only instructions that have been exercised from a fresh session.
+The testing-access arrangement must stay available without payment or BYO keys through December 15, 2026, noon Pacific, per the [official rules](https://nebiusglobalaihackathon.devpost.com/rules). Fresh-session testing is recorded in [verification](VERIFICATION.md). The [shutdown workflow](AUTO_SHUTDOWN.md) cannot remove hosting before December 15 at 12:30 p.m. PST, after the required judging period. Normal eligible execution is 12:37 p.m., subject to GitHub delays.

@@ -76,13 +76,26 @@ Both use HTTPS with SSL verification enabled, redirects disabled, a three-minute
 
 Labeled test incident **1033213383** moved from down to resolved. The platform reported email **Sent**, and **the owner directly confirmed receiving both the incident-started and incident-resolved emails**. The normal free email route worked. A separate outgoing-email integration encountered a Free-plan paywall; no upgrade or external outgoing-email integration was used. Free on-call notifications target the team, which was verified to contain only the owner. This confirms this test's delivery, not future uninterrupted service or an automatic Fly billing alert.
 
-## Remaining review and submission work
+## Publication, submission and remaining operation
 
-- Owner review of raw findings and the edited demonstration copy; review/dependency flags remain visible.
-- Verify the private access-help route before submission.
-- Add the application access code only to Devpost's private judge instructions; this field is not yet filled. Provider/operator keys must never be judge credentials.
-- Complete and approve the sub-three-minute recording, public video, final entry, and personal attestations. No Devpost submission was made.
-- Approve any merge/new release separately; the public branch and draft PR do not establish either.
-- Keep host funding, expiry, monitor health, capacity, and cutoff recovery under operator review through **December 15, 2026, noon PST**. Configured expiry is the end of December 15. Future uptime and promotional-credit validity are not guaranteed by this test.
+The owner approved public video upload/publication, YouTube's displayed terms, personal eligibility statements and the final Devpost agreement/submission. The [public 2:23 video](https://youtu.be/32g2rKhPAuE) is published, with processed English captions and the expected title verified through anonymous oEmbed. Local full-stream decoding and sampled visual review are recorded in [video evidence](VIDEO_SCRIPT.md); no full normal-speed human playback is claimed. The [Devpost entry](https://devpost.com/software/easy-street) displayed **Project submitted!** and the hackathon under **Submitted To**. Its public story, assets, source/demo/video links and private judge-only testing attachment are saved. The private access-help route uses the entrant's Devpost profile without publishing a personal email.
+
+Owner content review remains open; all ten sections of the edited demonstration retain review/dependency warnings. The application PR remains a draft and the earlier v1.0.0 release is unchanged. Ongoing funding, monitor state, capacity and cutoff recovery require operator attention through **December 15, 2026, noon PST**. A working test now cannot guarantee future uptime. Resource shutdown is separately scheduled after judging as documented below; the app expiry alone does not stop hosting charges.
+
+## Final publication audit, October 16
+
+The published Devpost browser page displayed **Project submitted!** after the owner-approved final agreement, with the hackathon under **Submitted To**. The public story does not expose the judge access code or private questionnaire responses. A separate unauthenticated direct HTTP fetch received 403, so it is not recorded as an anonymous Devpost-page acceptance check. YouTube's anonymous oEmbed identity check passed separately.
+
+A final repository scan covered 119 source files, including the new operations/content-review documents, against seven known local access/provider/operator/shutdown secrets. It found no exact secret matches, prohibited authorship labels or missing relative file links. The independent documentation review covered 13 Markdown files and 97 relative links with no remaining material issue after two stale-status corrections. These bounded checks are not a claim to know the unread hosted provider key.
+
+Final read-only hosting checks returned HTTP 200 with generation available, no operator attention, one started Machine, one volume, two IP allocations and zero snapshots. The ledger still showed $0.0043341 hosted spending, $2.9884995 remaining, no reservations and no uncertain calls. Both application monitors and the separate shutdown heartbeat showed **Up**. No new inference was performed by publication, recording, monitoring or shutdown rehearsal.
+
+## Authorized shutdown follow-up, October 16
+
+The app runtime remains `0c010c0`. The later operations commit [879ca4d](https://github.com/agammann/easy-street/commit/879ca4d810c76a040173b64adf28ddcc7eea0764) passed [all three full hackathon CI runners](https://github.com/agammann/easy-street/actions/runs/39001657120): Linux 279 backend/integration tests; each Mac 278 plus one optional skip; 35 new mocked shutdown tests and 49 frontend tests on each. Build, smoke, packaging and fresh Python-only installation passed; the identical 121-file archive SHA-256 was `fee48061e5da7d5bee27bfaa7a62d38905e905092a21ae432d73a390a31d13f4`.
+
+The narrow operations-only [PR #2](https://github.com/agammann/easy-street/pull/2) separately passed Linux and both Mac CI while preserving the earlier application. It was merged to `main` as `089d24c7cff5d0fda89d686361dc7129dc185cf4` to activate the schedule. The actual [default-branch cloud rehearsal](https://github.com/agammann/easy-street/actions/runs/39001965836) passed: fixed resource inventory, real read-only aggregate extraction, public-certificate encryption, artifact upload, authenticated re-download, digest/exact-content verification and watchdog check-in. Local decryption of that cloud artifact matched the aggregate hash. Hosted provider calls remained two, with $0.0043341 estimated cost; no additional inference was made.
+
+All early mutation/destruction steps were skipped by the real date gates. Mocked tests cover future cleanup, refusal and partial-recovery paths; actual December snapshot changes and destruction have not happened. See [automatic shutdown](AUTO_SHUTDOWN.md) for the precise schedule, evidence, snapshot limitations and secondary follow-up. The actual December operations remain future work; the current activation is stronger evidence than application expiry alone.
 
 See [eligibility](ELIGIBILITY.md), [costs and operations](COSTS_AND_OPERATIONS.md), [judge access](JUDGE_ACCESS.md), [change record](CONTEST_CHANGES.md), and [video script](VIDEO_SCRIPT.md).

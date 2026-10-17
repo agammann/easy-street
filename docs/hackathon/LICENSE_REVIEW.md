@@ -6,6 +6,8 @@ Reviewed October 16, 2026. This is a project-specific inventory and release chec
 
 The repository [LICENSE](../../LICENSE) is MIT, copyright 2026 agammann. The original garden chapter at `backend/sample/chapter.txt`, its PDF/DOCX forms, and the authored offline example are project material covered by that license. They do not reproduce a textbook or a third-party curriculum. The explicit [sample notice](../../backend/sample/LICENSE.txt) records those terms and should travel with redistributed sample files. Do not imply that the sample establishes horticultural expertise; in the demonstration, it is the bounded source of educational claims.
 
+The existing local extractor was run against all three sample files. Their extracted text matched the original TXT after whitespace normalization, with six TXT passages, one PDF passage and eleven DOCX passages. The separate [sample content review](CONTENT_REVIEW.md) records remaining teaching-content limits and the seven corrections made to a cached hosted copy; license permission does not establish factual correctness or owner acceptance.
+
 Visitor uploads retain their owners' rights. Ask visitors to use material they may process. A source upload, short quotation, and generated export do not transfer textbook rights to Easy Street. Exports may include quotations, so users must review permission and sharing suitability. Demonstrations should use the original sample rather than visitor documents.
 
 The released dependency review is [docs/DEPENDENCIES.md](../DEPENDENCIES.md), with built-interface notices in [THIRD_PARTY_NOTICES.txt](../../THIRD_PARTY_NOTICES.txt). The source license does not replace React, Lucide, Python-package, optional OCR, or other third-party licenses. New packages or binary distribution changes need a refreshed review. Existing optional Tesseract/PDFium installation remains separate from the application source.
@@ -40,8 +42,9 @@ Use actual application footage, the original sample, and the project's own text.
 - [x] Record configured runtime model ID, NVIDIA upstream card, and upstream license.
 - [x] Confirm the authenticated Nebius catalog mapping and model availability in both approved live runs; see [verification](VERIFICATION.md).
 - [ ] Resolve any new account/model terms with the owner before accepting them or extending the service arrangement.
-- [ ] Confirm no new runtime dependency was added without a corresponding license entry.
-- [ ] Retain all notices in any built source/release distribution.
-- [ ] Verify the sample's TXT/PDF/DOCX files derive from the same original project text.
-- [ ] Review all screenshots, video frames, README examples, and exported demonstration files for third-party/private content and keys.
-- [ ] Obtain the owner's remaining release/video-publication and agreement approvals; branch publication/draft PR are already approved and complete. Do not make personal ownership attestations on their behalf.
+- [x] The provider/shutdown adaptation reuses the existing runtime dependencies; the shutdown controller uses the Python standard library and the runner's existing OpenSSL. Private QA libraries are not shipped runtime dependencies.
+- [x] Tested source packaging retains LICENSE and THIRD_PARTY_NOTICES.txt; the earlier v1.0.0 release is unchanged.
+- [x] Verify the sample's TXT/PDF/DOCX files derive from the same original project text; actual local extraction matched after whitespace normalization.
+- [x] Record the independent source comparison and edited-copy limitations in [sample content review](CONTENT_REVIEW.md); owner acceptance and retained review flags are separate.
+- [x] Published screenshots and demonstration exports were checked for known secrets/private content. Video review decoded all frames and visually sampled every two seconds plus key frames; it does not establish a full normal-speed human watch. No third-party footage or music was added.
+- [x] The owner authorized branch publication, public video upload/terms/publication and final Devpost agreement/submission, and personally confirmed eligibility and rights. The entry was submitted; a new release has not been requested or published.

@@ -1,27 +1,46 @@
-# Demonstration video script
+# Demonstration video script and recording record
 
-Target duration: **2 minutes 45 seconds**. This is a recording plan, not proof that any pending feature or deployment works. Two local real runs and a funded hosted sample completed, with hosted desktop/mobile, exports, restart/cache, editing, and cleanup evidence. That hosted provider run used `0e0c17d`; the current `0c010c0` deployment adds privacy wording and Fly configuration fixes without a new provider call. Seven corrections were saved in the second copy while preserving raw evidence. Record after owner content review and any further corrections; see [VERIFICATION.md](VERIFICATION.md) for current CI and deployment checks. Rehearse to keep the published video below three minutes.
+A **2 minute 23 second** captioned demonstration was recorded from the actual hosted application on October 16, 2026 and published with explicit owner approval: **[Watch the public Easy Street demonstration](https://youtu.be/32g2rKhPAuE)**. It uses the deployed `0c010c0` interface and the existing Nemotron result. The local master is H.264 MP4, 1600 × 1000, 15 frames per second, with burned-in English captions and a separate SRT. It has no audio, music, or third-party footage.
 
-Use only the original garden chapter and application UI. Do not record secret-manager screens, environment files, terminal history, provider credentials, billing details, judge credentials, personal documents, or private browser tabs. Use no music or third-party footage. Show accurate provider/model and job states. A cached result must be labeled as cached; it must not be portrayed as a new inference call.
+YouTube showed **Public**, duration **2:23**, and copyright checks **No issues**. The uploaded English SRT showed **Done** and **English (by you)**. An anonymous oEmbed request verified the public video's exact title and identity. These checks establish the observed publication and caption-processing state; they do not claim a complete human playback or owner acceptance of every educational claim.
 
-| Time | Screen action | Narration |
-| --- | --- | --- |
-| 0:00–0:15 | Open the real app in a fresh session. Show the main workspace. | “Easy Street turns material you own into an editable mini-course. It is built for instructors and independent learners who want to check the source behind a draft.” |
-| 0:15–0:35 | Choose **Try the sample chapter**, show the original chapter and extraction. Briefly point to normal upload and the separate **Generate sample with Nebius** shortcut. | “I can upload a PDF, DOCX, or text chapter. For this demonstration I am using the original sample included with the project. I can inspect the extracted passages before sending anything for generation.” |
-| 0:35–0:55 | Briefly show the configurable counts and outline, then return to the one-click sample preset. Make the two paths clear. | “The configurable workflow lets me choose modules, assignments, quizzes, and source coverage, then approve the outline. The one-click sample uses a preset. Educational claims must stay within the selected material; the workflow does not search the web.” |
-| 0:55–1:15 | Show the actual hosted Nebius start/progress/result, using uncached captured footage or a funded recording run within approval. Never label cached reuse as new inference. | “The server calls NVIDIA Nemotron through Nebius Token Factory to create this course and review support. The operator-funded judging demo keeps its key on the server. Regular installations keep the user's own provider setup.” |
-| 1:15–1:40 | Show the completed course. Open evidence beside notes and a quiz, including the introduction's review warning. | “Evidence links let me compare statements with their source. Missing evidence stays flagged for review. I can inspect quotations and locations, but a quotation alone does not guarantee that every claim follows from it.” |
-| 1:40–2:00 | Show the second copy's editor and version history, including the seven saved edits and retained review flags. Do not portray an unperformed regeneration as tested footage. | “I can correct the text and keep its history. These edits changed a cached copy while preserving the original result. Review warnings stay visible until the work has been checked.” |
-| 2:00–2:20 | Show separate learner/answer exports; download learner HTML. | “Learner material and answer keys export separately. JSON backs up the course without embedding the complete original document.” |
-| 2:20–2:35 | Show deletion/retention UI and visitor privacy statement. | “The hosted demonstration separates visitor workspaces, bounds generation, and provides deletion and temporary cleanup. No visitor needs a personal API key to judge the application.” |
-| 2:35–2:45 | Return to a clear course/evidence view; show approved repository and [live demo](https://easy-street-agammann-2026.fly.dev) links without the private access code. | “Easy Street is open source. Its purpose is practical: turn a chapter into useful learning work while keeping the original evidence within reach.” |
+The course was **previously generated** through Nebius Token Factory using `nvidia/nemotron-3-super-120b-a12b`. The recording opens its edited cached copy and does not start a new generation. The original raw result remains separate. The earlier real provider job and measured usage are recorded in [VERIFICATION.md](VERIFICATION.md); this video demonstrates the actual application and saved result, not new inference evidence.
 
-## Recording checks
+## Recorded sequence
 
-- Use an uncached sample generation only after its test spending is approved. If the run is slow, shorten idle footage with an explicit “generation wait shortened” caption; retain the real start and result. Do not replace the result with unrelated mock content.
-- Keep more than one minute of actual application interaction on screen. The hosted job lifecycle was 15.8418 seconds; this is one observation, not a speed guarantee. Record desktop interaction at readable text size; show a brief mobile view only if it was tested and helps the story.
-- The first real sample returned zero automatic flags, yet a separate inspection caught a title-only introduction citation and an unsupported assurance. The second v2.1 sample improved that introduction but still had coverage/precision gaps despite zero automatic flags. The hosted result retained an introduction warning and further support gaps; seven edits in a second copy preserved the raw first evidence. Show the honest review state or a deliberate correction when demonstrating a missed claim. If evidence is insufficient, keep that visible. Do not claim perfect source grounding or guaranteed correctness.
-- Verify every shown feature, button label, provider/model, access instruction, and link against the final tested revision. [VERIFICATION.md](VERIFICATION.md) separates the fully green packaging-correction revision from later edits and records actual deployment evidence and remaining review/submission gates. The exact model name must match the deployed runtime.
-- Inspect the entire recording for accidental secrets or personal data before approval. The source branch and draft PR are public with approval; merge and a new release remain unapproved. The owner must approve video publication. Upload to the approved public YouTube destination only after that approval.
+| Time | Actual application content and captions |
+| --- | --- |
+| 0:00–0:07 | Easy Street workspace and original application artwork. Introduce the chapter-to-course workflow and disclose one idle-time cut. |
+| 0:07–0:14 | Open the original MIT-licensed sample chapter in the configurable workflow and inspect extracted passages. Normal readable PDF/DOCX/TXT upload remains available. |
+| 0:14–0:24 | Show bounded module/assessment options and the free outline/source-coverage preview. Leave generation unstarted. |
+| 0:24–0:31 | Open the existing actual Nemotron course. Identify the model and explicitly caption previously generated, edited cached content with no new inference. |
+| 0:31–0:40 | Open source evidence beside readings, showing quotations and paragraph locations. Explain that an exact quote alone does not prove support for every claim. |
+| 0:40–0:44 | Show saved version history and explain the seven earlier corrections to the second copy. |
+| 0:44–1:16 | Inspect the inline editor and retained review state, then cancel without another save. Keep the original result separate; owner content review is still needed. |
+| 1:16–1:34 | Show the answer-key view, quiz answer/rationale, approximation wording, and dependent review warnings. |
+| 1:34–1:41 | Show learner HTML, separate answer-key HTML, and JSON backup export actions. Clarify that JSON includes answers and selected quotations. |
+| 1:41–1:54 | Show hosted settings for Nebius funding, retention, and bounded usage. The operator key remains on the server; judges need no personal provider key. |
+| 1:54–1:59 | Open the deletion confirmation, show active-file deletion and possible backup retention, then cancel and preserve the workspace. |
+| 1:59–2:12 | Return to distinct saved courses, the edited copy, and the newly previewed free outline. No fresh generation request is made. |
+| 2:12–2:23 | Finish on the source-linked course overview with the [live application](https://easy-street-agammann-2026.fly.dev) URL and private-access requirement. |
 
-The [official rules](https://nebiusglobalaihackathon.devpost.com/rules) specify the public YouTube demonstration format. No recording, upload, or publication is performed by this script.
+Only the included original chapter and real application interface are shown. No secret-manager screens, environment files, terminal history, provider/operator keys, judge credentials, private contacts, personal documents, or unrelated tabs are included. No fabricated generation progress or mock provider output is substituted for the saved course.
+
+## Editing and verification
+
+The original continuous browser capture is 161.5934 seconds. The edit removes **18.6 seconds of unchanged editor idle time**, retains source time 0–60 and 78.6–161.5934, fits the real frames to the output canvas, and adds a separate caption band. Normal frame-rate conversion preserves the captured sequence and produces a **143.000-second** output. The original capture is retained privately and unchanged.
+
+The MP4 SHA-256 is **`e9c45c02ed8cbce805699751af5ab6ed5ea93a01888e474cb1f2178f48b35289`**. The separate SRT SHA-256 is **`241bde7fa1c40e14831952b12a0f5af82efc2e1b130d6e365177f16a0c4dfe53`**. These identify local review artifacts kept outside the public source repository.
+
+The full local video stream was decoded and counted at **2,145 frames**; metadata and representative full-size frames were checked. A complete low-frequency filmstrip sampled the output every two seconds, covering all 72 samples. The sample, outline, saved course, evidence, version history, editor, answer key, exports, settings, deletion cancellation, and closing course view were visible. No credentials, private contacts, operator-status screen, or unrelated browser content were visible in that review. Full-stream decoding and sampled visual verification are distinct from watching the entire video at normal speed. **No complete 1× human playback review is claimed.**
+
+## Review and publication checks
+
+- A complete normal-speed playback review remains available as an additional check of caption timing/readability and the saved-content/cut disclosures; it has not been represented as completed.
+- Retain the source-support warnings. The original model output had missed claim-strength/citation issues; seven saved corrections do not establish perfect source grounding or replace owner content review.
+- Verify the public demo remains accessible through judging. The recording and cached course do not replace a working service or establish future uptime.
+- Keep the application code only in private judge instructions. Never publish provider/operator credentials or a secret-bearing screen.
+- The approved video is now public at [youtu.be/32g2rKhPAuE](https://youtu.be/32g2rKhPAuE), below three minutes. Public identity, visibility, duration, caption-processing state, and the platform copyright-check result were verified. Keep the same URL in the final entry and documentation; no full normal-speed playback is inferred from these checks.
+- The owner separately confirmed personal eligibility and approved the final Devpost agreement/submission; the entry was submitted successfully. Follow the current [official rules](https://nebiusglobalaihackathon.devpost.com/rules).
+
+The [official rules](https://nebiusglobalaihackathon.devpost.com/rules) specify the public YouTube demonstration format. Recording, local rendering, approved publication, and the checks above are complete. The separately authorized Devpost entry was submitted; teaching-content review warnings remain.
