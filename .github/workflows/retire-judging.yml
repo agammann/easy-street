@@ -1,0 +1,211 @@
+name: Retire judging deployment
+on:
+  schedule:
+    - cron: '37 * * * *'
+  workflow_dispatch:
+    inputs:
+      rehearsal_backup:
+        description: 'Rehearse encrypted aggregate-only backup without pausing or deleting anything'
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+  actions: read
+concurrency:
+  group: easy-street-judging-retirement
+  cancel-in-progress: false
+
+jobs:
+  retire:
+    if: github.repository == 'agammann/easy-street' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 12
+    outputs:
+      retired: ${{ steps.cleanup.outcome == 'success' }}
+    env:
+      PYTHONDONTWRITEBYTECODE: '1'
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        with:
+          persist-credentials: false
+      - name: Test fixed-target controller with mocks
+        run: |
+          python3 -m pip install pytest==9.1.1
+          python3 -m pytest tests/test_fly_shutdown.py
+      - name: Inspect exact approved resources without mutation
+        id: inventory
+        env:
+          FLY_API_TOKEN: ${{ secrets.EASY_STREET_SHUTDOWN_FLY_TOKEN }}
+        run: |
+          python3 scripts/fly_shutdown.py --mode inventory > "$RUNNER_TEMP/inventory.json"
+          cat "$RUNNER_TEMP/inventory.json"
+          python3 - <<'PY'
+          import json, os
+          from datetime import datetime, timezone
+          value = json.load(open(os.environ['RUNNER_TEMP'] + '/inventory.json'))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              for key in ('snapshot_change_due', 'shutdown_due'):
+                  output.write(f'{key}={str(value[key]).lower()}\n')
+              output.write(f"machine_started={str(value['machine_started']).lower()}\n")
+              present = any(value[k] for k in ('machines','volumes','ips','snapshots')) or not value.get('snapshot_inventory_available', True)
+              output.write(f"resources_present={str(present).lower()}\n")
+          PY
+      - name: Disable future snapshots after the fixed December 9 gate
+        if: steps.inventory.outputs.snapshot_change_due == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.EASY_STREET_SHUTDOWN_FLY_TOKEN }}
+        run: python3 scripts/fly_shutdown.py --mode disable-snapshots
+      - name: Install checksum-verified Fly CLI only when shutdown is due
+        if: steps.inventory.outputs.shutdown_due == 'true' && steps.inventory.outputs.machine_started == 'true'
+        run: |
+          curl --fail --silent --show-error --location --proto '=https' --tlsv1.2 \
+            https://github.com/superfly/flyctl/releases/download/v0.4.118/flyctl_0.4.118_Linux_x86_64.tar.gz \
+            --output "$RUNNER_TEMP/flyctl.tar.gz"
+          printf '%s  %s\n' '0f2fabbb29904a7bac8bd96009314d26751084c33e098fcc393e2dac6c472f60' "$RUNNER_TEMP/flyctl.tar.gz" | sha256sum --check
+          tar -xzf "$RUNNER_TEMP/flyctl.tar.gz" -C "$RUNNER_TEMP" flyctl
+      - name: Pause paid dispatches after judging and preserve uncertain reservations
+        if: steps.inventory.outputs.shutdown_due == 'true' && steps.inventory.outputs.machine_started == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.EASY_STREET_SHUTDOWN_FLY_TOKEN }}
+        run: |
+          "$RUNNER_TEMP/flyctl" secrets set EASY_STREET_DEMO_BUDGET_USD=0 \
+            --app easy-street-agammann-2026 --detach=false
+      - name: Prepare encrypted aggregate accounting backup
+        id: prepare
+        if: steps.inventory.outputs.machine_started == 'true' && (steps.inventory.outputs.shutdown_due == 'true' || inputs.rehearsal_backup == true)
+        env:
+          FLY_API_TOKEN: ${{ secrets.EASY_STREET_SHUTDOWN_FLY_TOKEN }}
+          REHEARSAL: ${{ steps.inventory.outputs.shutdown_due != 'true' }}
+        run: |
+          if [[ "$REHEARSAL" == 'true' ]]; then
+            mode=rehearsal-backup
+          else
+            mode=prepare-backup
+          fi
+          python3 scripts/fly_shutdown.py --mode "$mode" \
+            --backup-dir "$RUNNER_TEMP/retirement-backup" \
+            --certificate deploy/shutdown-backup-cert.pem
+      - name: Preserve encrypted accounting off host
+        id: upload
+        if: steps.prepare.outcome == 'success'
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: easy-street-shutdown-ledger-${{ github.run_id }}
+          path: |
+            ${{ runner.temp }}/retirement-backup/ledger.cms
+            ${{ runner.temp }}/retirement-backup/receipt.json
+          if-no-files-found: error
+          retention-days: 30
+          compression-level: 0
+      - name: Recover verified accounting after a partial cleanup
+        id: recover
+        if: steps.inventory.outputs.shutdown_due == 'true' && steps.inventory.outputs.machine_started != 'true' && steps.inventory.outputs.resources_present == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.EASY_STREET_SHUTDOWN_FLY_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 scripts/fly_shutdown.py --mode recover-backup \
+            --backup-dir "$RUNNER_TEMP/retirement-backup" \
+            --certificate deploy/shutdown-backup-cert.pem > "$RUNNER_TEMP/recovered.json"
+          cat "$RUNNER_TEMP/recovered.json"
+          python3 - <<'PY'
+          import json, os
+          value = json.load(open(os.environ['RUNNER_TEMP'] + '/recovered.json'))
+          with open(os.environ['GITHUB_OUTPUT'], 'a') as output:
+              for key in ('artifact_id', 'artifact_digest'):
+                  output.write(f'{key}={value[key]}\n')
+          PY
+      - name: Verify encrypted artifact download and exact contents
+        if: steps.upload.outcome == 'success' || steps.recover.outcome == 'success'
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          EASY_STREET_SHUTDOWN_ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id || steps.recover.outputs.artifact_id }}
+          EASY_STREET_SHUTDOWN_ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest && format('sha256:{0}', steps.upload.outputs.artifact-digest) || steps.recover.outputs.artifact_digest }}
+        run: |
+          python3 - <<'PY'
+          import os
+          from pathlib import Path
+          from scripts.fly_shutdown import Http, verify_uploaded_backup
+          receipt = verify_uploaded_backup(Http(), Path(os.environ['RUNNER_TEMP']) / 'retirement-backup',
+              Path('deploy/shutdown-backup-cert.pem'), os.environ)
+          print({'encrypted_artifact_verified': True, 'rehearsal': receipt['rehearsal']})
+          PY
+      - name: Verify uploaded backup, remove exact resources, and confirm absence
+        id: cleanup
+        if: steps.inventory.outputs.shutdown_due == 'true' && steps.inventory.outputs.resources_present == 'true'
+        env:
+          FLY_API_TOKEN: ${{ secrets.EASY_STREET_SHUTDOWN_FLY_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
+          EASY_STREET_SHUTDOWN_ARTIFACT_ID: ${{ steps.upload.outputs.artifact-id || steps.recover.outputs.artifact_id }}
+          EASY_STREET_SHUTDOWN_ARTIFACT_DIGEST: ${{ steps.upload.outputs.artifact-digest && format('sha256:{0}', steps.upload.outputs.artifact-digest) || steps.recover.outputs.artifact_digest }}
+        run: |
+          python3 scripts/fly_shutdown.py --mode execute \
+            --backup-dir "$RUNNER_TEMP/retirement-backup" \
+            --certificate deploy/shutdown-backup-cert.pem
+      - name: Send sanitized success or failure to the independent watchdog
+        if: always()
+        env:
+          HEARTBEAT_URL: ${{ secrets.EASY_STREET_SHUTDOWN_HEARTBEAT }}
+          RESULT: ${{ job.status }}
+        run: |
+          python3 - <<'PY'
+          import os, urllib.request, urllib.error
+          url = os.environ.get('HEARTBEAT_URL', '')
+          if not url.startswith('https://incidents.betterstack.com/api/v1/heartbeat/'):
+              raise SystemExit('Shutdown heartbeat is not configured.')
+          if os.environ['RESULT'] != 'success':
+              url += '/fail'
+          request = urllib.request.Request(url, method='POST',
+              data=b'Easy Street shutdown controller: inspect its GitHub Actions run.')
+          try:
+              with urllib.request.urlopen(request, timeout=15) as response:
+                  if response.status != 200:
+                      raise ValueError()
+              print('Sanitized shutdown watchdog check-in accepted.')
+          except (OSError, ValueError, urllib.error.HTTPError):
+              raise SystemExit('Shutdown watchdog check-in failed; no URL or credentials were printed.') from None
+          PY
+  finish:
+    needs: retire
+    if: needs.retire.outputs.retired == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 2
+    permissions:
+      contents: read
+      actions: write
+    steps:
+      - name: Disable this completed schedule after verified retirement
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          python3 - <<'PY'
+          import os, urllib.request
+          endpoint = 'https://api.github.com/repos/agammann/easy-street/actions/workflows/retire-judging.yml/disable'
+          request = urllib.request.Request(endpoint, method='PUT', headers={
+              'Authorization': 'Bearer ' + os.environ['GITHUB_TOKEN'],
+              'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28'})
+          try:
+              with urllib.request.urlopen(request, timeout=20) as response:
+                  assert response.status == 204
+              print('Verified retirement complete; this workflow schedule is disabled.')
+          except Exception:
+              raise SystemExit('Resources retired, but schedule retirement needs attention.') from None
+          PY
+      - name: Alert if the completed schedule could not disable itself
+        if: failure()
+        env:
+          HEARTBEAT_URL: ${{ secrets.EASY_STREET_SHUTDOWN_HEARTBEAT }}
+        run: |
+          python3 - <<'PY'
+          import os, urllib.request
+          url = os.environ.get('HEARTBEAT_URL', '')
+          if not url.startswith('https://incidents.betterstack.com/api/v1/heartbeat/'):
+              raise SystemExit('Shutdown heartbeat is not configured.')
+          try:
+              with urllib.request.urlopen(urllib.request.Request(url + '/fail', method='POST',
+                      data=b'Easy Street resources retired; completed workflow needs to be disabled.'), timeout=15):
+                  print('Schedule retirement attention alert accepted.')
+          except Exception:
+              raise SystemExit('Schedule retirement alert needs attention; details withheld.') from None
+          PY
