@@ -46,6 +46,8 @@ jobs:
           .venv/bin/python -m pip install -r backend/requirements-ocr.txt
       - name: Test backend and integration
         run: .venv/bin/python -m pytest backend/tests tests/integration
+      - name: Test judging shutdown safeguards with mocks
+        run: .venv/bin/python -m pytest tests/test_fly_shutdown.py
       - name: Install frontend
         working-directory: frontend
         run: pnpm install --frozen-lockfile
