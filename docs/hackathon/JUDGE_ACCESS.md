@@ -1,52 +1,54 @@
-# Judging access preparation
+# Judging access and acceptance
 
-This public file contains no credentials. **No hosted URL or testing-access arrangement is active yet.** Fly hosting and $15 total through December 15 are approved ($8 hosting, $3 aggregate inference including development, $4 contingency), with deployment conditional on final checks and passing live Nebius acceptance. A development key is configured privately and both real samples passed technical checks, including revised prompt v2.1. Separate inspection still found coverage/precision gaps, so owner content review and manual correction remain pending. See [VERIFICATION.md](VERIFICATION.md). Credentials, new account agreements, and payment setup stay under the owner's private control; the prepared judging allowance remains zero until the conditions pass. Free Better Stack email monitoring and labeled test alerts to the verified account email are approved, using the read-only operator status endpoint, but the specific free-account terms are approved and signup reached email verification; monitor configuration and delivery remain unverified. Branch publication and draft PR creation are approved and complete; merge, a new release, video publication, and entry submission remain unapproved. Fill the private testing fields only after the deployed workflow is verified.
+The approved application is running at **[https://easy-street-agammann-2026.fly.dev](https://easy-street-agammann-2026.fly.dev)** from runtime source **`0c010c00c160e1cb47c60eea7f758050c23a3831`**, including the retention wording and Fly configuration corrections. This public file contains no credentials. The private application code still needs to be added to Devpost's private testing field; no entry has been submitted. Judges need no provider account, payment, or personal API key.
 
-## Intended access
+Hosted generation, exports, restart persistence, cached reuse, and editor saves were exercised on the first funded runtime `0e0c17d`. The replacement passed fresh hosted privacy-notice, persistence, ledger, and mobile checks, preserving the provider backend without a new inference call. The raw hosted result is marked `needs_review`, and the edited second copy retains review/dependency flags. Owner content review is pending. See [VERIFICATION.md](VERIFICATION.md) for measured results, current CI and deployment checks, and limitations.
 
-Judges receive an HTTPS application URL and a private judge password in Devpost's testing instructions. It is an application-access password, separate from the operator token and Nebius API key. The host stores its PBKDF2 password hash; the operator-funded Nebius key stays in the host's secret environment. Judges do not provide their own API key or pay for testing.
+## Private access and intended working period
 
-After login, each browser receives an opaque HttpOnly session cookie and its own temporary documents, courses, results, jobs, database, and cache. Two browsers using the same judge password must still receive independent visitor workspaces. Use a fresh browser context to test this boundary. Sharing the access password never shares a provider credential or another visitor's content.
+Judges use the HTTPS URL above and the application-access code supplied privately. It is separate from the operator token and Nebius API key. The host keeps a PBKDF2 access hash and the operator-funded provider key in its secret environment. Do not put any of these values in public documentation; provider/operator keys must never be judge credentials.
 
-The intended availability period runs through **December 15, 2026, noon PST**. The prepared expiry is midnight PST at the end of December 15 (`2026-12-16T08:00:00+00:00`). The [rules](https://nebiusglobalaihackathon.devpost.com/rules) require free judging access and allow private sites when credentials are supplied. Temporary workspaces, bounded per-call tasks, and an emergency operator allowance must not become a routine barrier to legitimate judging. Monitor headroom and provide operator assistance if capacity or the temporary-session allowance is exhausted.
+Each authenticated browser receives an opaque Secure/HttpOnly/SameSite=Strict cookie and isolated temporary originals, courses, jobs, results, database, and cache. Two hosted HTTP sessions using the same access code were verified to remain independent. A shared access code does not share another visitor's material.
 
-The operator prepares access values with [scripts/configure_judging.py](../../scripts/configure_judging.py), using `.\.venv\Scripts\python.exe scripts/configure_judging.py` on Windows or `.venv/bin/python scripts/configure_judging.py` on macOS/Linux. Hidden prompts create a PBKDF2 hash and random operator token in ignored `deploy/.env.judging.local`; no provider key is requested, no credential is printed, and the initial generation allowance stays zero. Enter the dedicated Nebius key separately through the owner-controlled private host setup. Enable only the remaining approved inference amount after the live-test/final-check conditions pass. Keep the plaintext access code only in the approved private instructions/password manager.
+The required availability period runs through **December 15, 2026, noon PST**; configured deployment expiry is the end of December 15 (`2026-12-16T08:00:00+00:00`). The [rules](https://nebiusglobalaihackathon.devpost.com/rules) permit private sites when credentials are supplied and require free judging access. The owner approved a $15 total operating budget through that period. Funding, capacity, expiry, and alerts need continued operator attention; neither this approval nor a passing test guarantees future uptime or imposes a platform billing cap.
 
-## Testing steps to put in the private entry
+Operator setup remains documented in [scripts/configure_judging.py](../../scripts/configure_judging.py). Its hidden prompts create a hash/token in ignored local configuration, start with a zero allowance, and do not request a provider key. The active service now uses approved host secrets and a bounded funded allowance; see [costs and operations](COSTS_AND_OPERATIONS.md). Do not replace secrets or increase allowances as a routine judge workaround.
 
-1. Open the approved HTTPS URL in a fresh browser window and sign in with the credential supplied privately. No registration, payment, or provider account is required.
-2. Choose **Generate sample with Nebius** for the one-click original garden chapter workflow. Its disclosure identifies the included licensed source and provider; preset small-course settings skip the manual outline steps in step 3. A funded operator configuration is required; an unavailable provider is not replaced with mock generation.
-3. For the manual workflow, choose **Try the sample chapter** or upload a PDF, DOCX, or TXT chapter you may process. Hosted upload size is 5 MiB; readable text is required because the judging image does not include optional local OCR tools. Review extracted passages, configure modules/assignments/quizzes/questions, and approve the outline/source disclosure. Hosted counts are bounded to three modules, three assignments, and three quizzes. Regular local installations retain the broader released limits.
-4. Generate using Nebius Token Factory. The configured NVIDIA model is `nvidia/nemotron-3-super-120b-a12b`; final instructions must match the actual tested deployment. The two local development samples completed in 8.62 and 10.50 seconds; these observations are not a hosted average or guaranteed wait. Final instructions must use observed deployment timing after acceptance. A cached result must be labeled accordingly.
-5. Open source evidence beside a learning note or quiz. Compare exact quotations and source locations, inspect review warnings, and edit the result. Automated support review is fallible; missing evidence must remain visible.
-6. Regenerate a section, export learner HTML, and inspect the separate answer key if useful. A JSON backup contains answers and selected quotations; avoid sharing it as a learner-only handout.
-7. Delete the temporary workspace when finished. The prepared active-workspace retention period is 24 hours; active work may delay physical removal. The proposed Fly volume also retains daily snapshots for five days, so application deletion does not instantly erase backup copies. Tell judges the final host's verified cleanup and backup retention before submission; no host policy is active yet.
-8. If access, capacity, or generation fails, use the privately supplied monitored owner contact. A spending cutoff needs operator intervention. Do not ask judges to top up credits, disclose their own key, or solve an operator billing issue.
+## Judge testing steps
 
-## Private fields to complete outside Git
+1. Open **[Easy Street](https://easy-street-agammann-2026.fly.dev)** in a fresh browser window and enter the privately supplied application code. No registration or provider key is required.
+2. Choose **Generate sample with Nebius**. Its disclosure identifies the original licensed garden chapter and operator-funded provider. It uses preset one-module/one-assignment/one-quiz settings with three questions, skipping the manual outline steps below. The observed uncached hosted job took **15.8418 seconds** from persisted creation to completion; this is one sample, not a guaranteed wait. Cache hits reuse saved content and must be identified as cached.
+3. For a configurable workflow, choose **Try the sample chapter** or upload a PDF, DOCX, or TXT chapter you may process. Hosted uploads are bounded to 5 MiB, three modules, three assignments, and three quizzes. Readable text is required; the judging image does not include optional OCR tools. Review extraction and source coverage, choose counts, and approve the provider disclosure before generation.
+4. The selected model is **`nvidia/nemotron-3-super-120b-a12b`** through Nebius Token Factory. Open source evidence, compare the exact quotation and location with the attached claim, and inspect review warnings. The raw sample has an introduction warning and additional support limitations; a completed job does not establish perfect source grounding.
+5. Try the editor and version history. Seven corrections were saved in a second cached copy while preserving the raw first result; flags remain for owner review. Export learner HTML, separate answers, and JSON backup. JSON includes answers and selected quotations, so it is not a learner-only handout. A regeneration makes a new bounded provider request; ordinary edits do not.
+6. Download anything you want to keep, then use **Delete my workspace**. Two hosted fixture sessions passed deletion acknowledgments and subsequent cookie/resource rejection. Active retention is 24 hours; active work can delay physical cleanup. Normal maintenance removed an owned deliberately expired hosted fixture after 67.94 seconds of observation, without affecting another visitor or accounting; this did not wait a real 24 hours. The Fly volume reports five-day snapshot retention, so existing backup copies may outlive application deletion. Snapshot scheduling/existence is not established by that setting.
+7. If access, capacity, or generation fails, use the privately supplied owner contact. The emergency cutoff pauses generation and needs operator intervention. Do not ask judges to fund the account, supply a provider key, or solve a billing problem.
+
+## Private entry fields still needing completion
 
 | Field | Current state |
 | --- | --- |
-| Application URL and deployed revision | Conditional deployment approved; two real samples technically passed, including v2.1; owner content review/correction, final production-secret checks, and actual deployment remain pending |
-| Judge password | Not recorded here; private testing field only |
-| Monitored access-help route | Owner must approve and confirm |
-| Observed small-run wait | Two local development samples: 8.62 and 10.50 seconds; a deployed average/maximum is not yet measured |
-| Working period and operator coverage | $15 through December 15 approved; actual host availability and monitoring verification pending |
-| Cleanup behavior observed | Local automated/container checks passed; observation on the approved deployed host remains pending |
-| Last fresh-session verification | Not performed against a deployed service |
+| Application URL and deployed source | [Live HTTPS app](https://easy-street-agammann-2026.fly.dev), runtime `0c010c0`; [CI run 38999513875](https://github.com/agammann/easy-street/actions/runs/38999513875) passed all three runners; image and revision-specific hosted evidence in [verification](VERIFICATION.md) |
+| Judge access code | Configured privately; still needs placement in Devpost's private testing instructions |
+| Access-help contact | Confirm the owner route before submission; no personal address is published here |
+| Observed uncached wait | 15.8418-second hosted job lifecycle; no hosted average/maximum benchmark |
+| Cache behavior | Second course completed with identical pre-edit sections and zero new provider calls/cost |
+| Restart behavior | Cookie/source/course survived; post-restart hashes matched the pre-restart export |
+| Notifications | Availability and protected attention monitors are Up; the owner confirmed both incident-started and resolved emails through the normal free email route |
+| Content review | Raw findings preserved; edited second copy still requires owner review |
 
-## Acceptance before offering access
+## Acceptance status and remaining checks
 
-- [ ] Open from an unauthenticated desktop browser; protected API calls cannot read documents or spend credits.
-- [ ] Login and complete the real Nebius sample path with no BYO credentials.
-- [ ] Upload a different permitted chapter and exercise outline, configurable counts, evidence, editing, regeneration, and exports.
-- [ ] Repeat in a separate browser session. Attempts to retrieve the first session's IDs, jobs, originals, or exports fail.
-- [ ] Verify duplicate clicks do not repeat a paid request and a cached repeat makes no provider call.
-- [ ] Complete the mobile workflow with readable evidence and no hidden primary controls.
-- [ ] Delete a workspace; confirm server-side records/files become unavailable while non-content shared accounting remains intact.
-- [ ] Observe expiry cleanup and restart behavior on the approved host's persistent disk.
-- [ ] Exercise wrong login, missing credentials, unavailable provider, malformed output, quota exhaustion, and the global cutoff using mocks/test configuration.
-- [ ] Confirm low-balance and outage/recovery notifications actually reach the approved destination.
-- [ ] Verify final judge instructions, private credentials, recovery contact, and the working period with the owner before submission.
+- [x] Fresh unauthenticated hosted requests cannot read protected resources or start generation.
+- [x] Login and the real one-click Nebius sample work without BYO credentials; three export downloads were checked for secrets.
+- [x] Separate hosted HTTP sessions cannot retrieve each other's documents, course state, jobs, versions, or exports.
+- [x] Repeated equivalent work after restart reused saved generation/review with no additional inference.
+- [x] Actual 390-pixel browser course and evidence drawer were readable without document overflow or console errors; this is not physical-device testing.
+- [x] Hosted fixture deletion invalidated cookies/resources while shared accounting remained intact.
+- [x] Source/course content and the authenticated browser session survived an operator-controlled restart.
+- [x] Mock/configuration tests cover malformed output, missing credentials, quota/cutoff, cancellation, and failure recovery; hosted zero-budget cutoff was separately exercised.
+- [x] An owned deliberately expired hosted fixture was rejected and removed by normal maintenance after 67.94 seconds of observation; no real 24-hour wait was performed.
+- [x] The owner confirmed receiving both incident and recovery notifications; no paid upgrade or external outgoing-email integration was used.
+- [ ] Complete owner content review, private judge instructions/contact, video approval, and final submission checks.
 
-The video and source are complementary evidence. They do not replace a functioning application or test build. If a legitimate judge encounters a restriction, the named operator must resolve it promptly and record the interruption honestly.
+The working service, source, and recording are complementary evidence. Keep capacity and funded headroom available through judging; an emergency interruption needs a named operator response.

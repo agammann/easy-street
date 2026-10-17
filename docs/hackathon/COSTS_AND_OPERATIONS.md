@@ -1,195 +1,173 @@
 # Judging budget and operations
 
-Prepared October 16, 2026. The owner approved **Fly hosting and $15 total through December 15**: $8 hosting, $3 aggregate inference including actual development charges, and $4 contingency. Deployment is approved **conditional on final checks and a passing live Nebius test**. Two real Nebius runs remain within the original **$1 aggregate development-test cap**: the first completed ten sections in **8.62 seconds** for **$0.0030525**, and the v2.1-prompt follow-up took **10.5 seconds** for **$0.0041139**, all application estimates from reported tokens. Aggregate estimated cost is **$0.0071664**. The development key stays private; the provider invoice is unverified, and **owner content acceptance remains pending** despite zero automatic flags. The original $85 proposal was declined. Fly CLI authentication and strict configuration validation passed; no paid hosting resources are provisioned. The owner approved the specific Better Stack free-account Terms/Privacy and sign-in email; signup was confirmed and a magic link sent for owner sign-in. Monitors remain **not configured or delivery-tested**. Other account agreements/payment steps stay under the owner's private control. Branch publication and draft PR creation are approved and complete. Merge, a new release, video publication, other new agreement acceptance, and entry submission remain unapproved. The judging runtime generation allowance stays $0 until the deployment conditions pass.
+Updated October 16, 2026 (Pacific). The owner approved **Fly hosting and $15 total through December 15**: $8 hosting, $3 aggregate inference including development, and $4 contingency. The approved deployment is running at **https://easy-street-agammann-2026.fly.dev** with private judge authentication and a server-only Nebius key. Provisioning, access-control checks, one restart, a funded hosted sample, cache reuse, and browser editing have been exercised. This records observed operation, not a guarantee of future availability or owner acceptance of generated content.
 
-## Proposed service and budget through December 15
+Three real sample jobs have used **20,932 input and 5,801 output tokens**, estimated at **$0.0115005** in total, within the approved **$1 aggregate acceptance-test ceiling** and $3 inference envelope. The hosted allowance is **$2.9928336**, after subtracting the two development runs from the $3 envelope. Its measured spend is **$0.0043341**, leaving **$2.9884995** with no reserved or uncertain amount. These are application estimates from provider-reported tokens, not verified invoices or actual provider balances. Checked-in templates retain the safe **$0 default**; the deployed allowance is a host-runtime secret override.
 
-The approved host is **one always-running Fly.io shared CPU Machine in `iad`, 512 MiB RAM, and one 1 GB volume**, subject to final acceptance and the passing live Nebius test. The application calls Nebius Token Factory for inference. No GPU host, separate database, custom domain, paid dedicated IPv4 address, additional worker, or paid support plan is included. The [hackathon FAQ](https://nebiusglobalaihackathon.devpost.com/details/faqs) permits hosting the remainder of the application elsewhere.
+Two free Better Stack monitors are active and were observed **Up**. A labeled incident automatically resolved, and the owner confirmed receipt of **both the incident-started and incident-resolved test emails**. The verified team contains only the owner. Normal Free-plan email notifications provide this route; no paid monitoring upgrade or external-email integration was configured. Owner content acceptance, verified promotional-credit expiry, and the manual hosting-bill review/escalation arrangement remain pending. The original $85 proposal was declined; this update makes no new agreement, prepaid purchase, or budget increase. Branch publication and the draft PR are approved and complete; merge, a new release, video publication, and entry submission remain separate approvals.
 
-| Candidate | Compute and persistent disk, October 16–December 15 inclusive | Total envelope and approval state |
+## Deployed service and budget through December 15
+
+The deployed service uses **one always-running Fly.io shared-CPU Machine, one shared vCPU, 512 MiB RAM, in `iad`, and one encrypted 1 GiB persistent volume**. The inventory has a shared IPv4 address and free IPv6, with no spare Machine, remote builder, dedicated paid IPv4, GPU host, separate database, custom domain, additional worker, or paid support plan. Nebius Token Factory performs inference. The [hackathon FAQ](https://nebiusglobalaihackathon.devpost.com/details/faqs) permits hosting the rest of the application elsewhere.
+
+| Configuration | Compute and persistent disk, October 16-December 15 inclusive | Envelope and state |
 | --- | --- | --- |
-| Fly `shared-cpu-1x`, 512 MiB, `iad` | ($3.69 + $0.15) × 61/30 ≈ **$7.81** | **$15 approved**: $8 hosting, $3 aggregate inference, $4 contingency; deployment conditional on final checks/live test |
-| Fly `shared-cpu-1x`, 1 GiB, `iad` | ($6.70 + $0.15) × 61/30 ≈ **$13.93** | **$20 unapproved alternative**: $14 hosting, $3 aggregate inference, $3 contingency |
-| Render paid Starter `0.5c-512mb`, one 1 GB disk | ($7 + $0.25) × 61/30 ≈ **$14.74** | **$20 unapproved alternative**: $15 hosting, $3 aggregate inference, $2 contingency |
-| Original Render `1c-2g`, one 1 GB disk (historical proposal) | ($25 + $0.25) × 61/30 ≈ **$51.34** | **$85 declined**; no longer the checked-in Render plan |
+| Deployed Fly `shared-cpu-1x`, 512 MiB, `iad` | ($3.69 + $0.15) x 61/30, approximately **$7.81** | **$15 approved**: $8 hosting, $3 aggregate inference, $4 contingency |
+| Fly `shared-cpu-1x`, 1 GiB, `iad` | ($6.70 + $0.15) x 61/30, approximately **$13.93** | **$20 unapproved alternative**; no upgrade performed |
+| Render Starter `0.5c-512mb`, one 1 GB disk | ($7 + $0.25) x 61/30, approximately **$14.74** | **$20 unapproved alternative**; no Render service deployed |
+| Original Render `1c-2g`, one 1 GB disk | ($25 + $0.25) x 61/30, approximately **$51.34** | Historical **$85 proposal declined** |
 
-The approved $3 inference envelope includes development usage. Subtracting both runs' aggregate **$0.0071664 application estimate** leaves at most **$2.9928336** for hosted inference **before further approved deployment-acceptance or development calls**. The invoice remains the authority; reduce that allowance for any additional charges before enabling the deployment, after its acceptance conditions pass. Do not presume the full $1 test ceiling has been spent. No promotional credit is deducted; verified expiry remains a prerequisite for counting it. The 30-day conversion is a planning approximation; actual bills use provider rates, service time, region, account usage, taxes, and metered extras. A later launch reduces expected cost. Contingency is not permission to add services, upgrade, or exceed the approved $15 total.
+Official prices checked October 16: [Fly Machine, volume, network, snapshot, and IP prices](https://docs.fly.io/about/pricing), [Render pricing](https://render.com/pricing), and [Render compute-plan IDs](https://render.com/docs/compute-plans). The 30-day conversion is a planning approximation. Actual charges depend on service time, region, account usage, taxes, and metered extras; later provisioning reduces the whole-period estimate. Hosting charges accrue even when the inference allowance is zero. Contingency is not permission to add services, upgrade, or exceed the approved total.
 
-Official prices checked October 16: [Fly Machine, volume, network, snapshot, and IP prices](https://docs.fly.io/about/pricing), [Render pricing](https://render.com/pricing), and [Render compute-plan IDs](https://render.com/docs/compute-plans). Fly prices vary by region; `iad` is used for this quote. Its shared IPv4/IPv6 and first ten single-host certificates currently have no separate charge. North American public egress is $0.02/GB, so an assumed 10 GB would add $0.20; this is a workload estimate, not a free allowance. Snapshot storage is $0.08/GB-month with the first 10 GB currently included each month. A one-volume five-day snapshot rotation should fit that inclusion in isolation, but other account usage and actual retained bytes must be checked. Volume storage is charged even while stopped/unattached; stopped Machine root filesystems can also incur storage charges. Do not leave obsolete Machines, volumes, or builders behind.
+Fly's shared IPv4/IPv6 and first ten single-host certificates currently have no separate charge. North American public egress is $0.02/GB; an assumed 10 GB adds $0.20, not a free allowance. Snapshot storage is $0.08/GB-month with the first 10 GB currently included each month. The configured one-volume, five-day rotation should fit that inclusion in isolation, but other account usage and actual retained bytes still govern billing. Volume storage remains billable while stopped or unattached, and stopped Machine root filesystems can incur storage charges. Do not leave obsolete resources behind.
 
-The Fly proposal disables idle stopping and uses one Machine with one persistent volume. Approved deployments must build with local Docker and `--local-only`, use `--ha=false`, and independently verify that no spare Machine or remote builder was created. [Fly's CLI reference](https://docs.fly.io/flyctl/cmd/fly_deploy) documents those options. The [availability documentation](https://docs.fly.io/apps/app-availability) explains the single-volume setup and lack of built-in replication. One Machine can fail or briefly go offline during deployment; monitoring and an operator response are needed. This is a small judging service, not an availability guarantee.
+Fly's [billing documentation](https://docs.fly.io/about/billing) describes ordinary metered card billing and an alternative prepaid purchase with a **$25 minimum**. The approved envelope uses metered billing; no prepaid purchase was made. A new $25 purchase would exceed the approved $15 and require revised approval. Provider invoices remain unverified; private account and payment details are excluded from this public record.
 
-The latest local container acceptance passed with **512 MiB RAM and 0.5 CPU**, covering login, TXT upload, isolation, zero-budget cutoff, explicit offline exports, restart, and deletion. A separate profile passed PDF/DOCX/TXT sample uploads, a three-module offline course, and 100 isolated visitor applications. Whole-test peak was **100.262 MiB**, memory after 100 visitor applications was **93.078 MiB**, and no OOM event or kill occurred. These fixtures do not prove worst-case uploads, actual host behavior, or a real provider response. Actual host capacity, disk permissions, and the full real generation workflow remain deployment acceptance gates. If 512 MiB fails those checks, seek approval for the 1 GiB option rather than silently upgrading. The [Render alternative](../../deploy/render.yaml) now uses the tested smaller shape, `0.5c-512mb`; the original 2 GB proposal above is retained only as history.
+Fly's [cost-management documentation](https://docs.fly.io/about/cost-management) states that native billing alerts are unavailable and free allowances do not cap charges. **No automatic $15 Fly account spending cap or hosting-cost alert is configured.** The application ledger controls inference, not compute, disk, egress, or unrelated account activity. A named owner route and manual review cadence for the current-month bill and resource inventory remain to be recorded. Better Stack application alerts do not fill that financial-control gap.
 
-Fly's [billing documentation](https://docs.fly.io/about/billing) says most accounts need an active valid credit card; an alternative prepaid-credit purchase has a **$25 minimum**. The approved $15 envelope assumes ordinary metered card billing, **not** a $25 credit purchase. A new $25 upfront purchase would exceed it and requires revised approval. A card verification hold can also appear temporarily. The owner handles payment/account steps privately; no agreement or credit purchase is accepted by this preparation. Do not count a trial or a free day toward judging availability.
+One Machine and volume provide no built-in replication. A failure or deployment can interrupt access; see [Fly availability](https://docs.fly.io/apps/app-availability). The intended working period runs through December 15, with application expiry at the end of that day. Monitoring and configuration do not guarantee availability throughout the period. If 512 MiB proves insufficient, obtain approval for a different plan before upgrading.
 
-Fly is pay-as-you-go with **no separate platform subscription fee** for this proposed configuration. Its [cost-management documentation](https://docs.fly.io/about/cost-management) says it currently provides **no native billing alerts** and that free allowances do not cap charges. There is **no automatic $15 account spending cutoff configured or established here**. The application ledger constrains inference, not Fly compute/storage/egress or other account activity. A recorded owner route and manual review of the dashboard's current-month bill and resource inventory are still pending. Confirm that review arrangement before provisioning; do not describe the $15 approval as a provider-enforced billing cap or promise automatic hosting-cost alerts.
+The separate local constrained profile passed under **512 MiB RAM and 0.5 CPU**, including PDF/DOCX/TXT samples, a three-module offline course and 100 isolated visitor applications. Whole-test peak was **100.262 MiB**, memory after 100 visitors was **93.078 MiB**, with no OOM event or kill. These fixture measurements are not a production memory ceiling. Actual Fly acceptance adds the host-specific evidence below.
 
-Render's [free service](https://render.com/docs/free) sleeps after 15 idle minutes and loses local SQLite/uploads on restarts or spin-down because free services cannot attach persistent disks. Losing the shared accounting ledger would undermine the cutoff, so it is not a drop-in judging host. [Railway Hobby](https://docs.railway.com/pricing/plans) has a $5 monthly minimum including $5 usage, but metered RAM/CPU can exceed it; it is not a fixed $5 cap. A free [Cloudflare Quick Tunnel](https://developers.cloudflare.com/tunnel/get-started/quick-tunnels/) would depend on the owner's PC staying awake, powered, connected, and running, with a temporary URL and no uptime SLA. These alternatives do not currently offer a better verified judging arrangement. Fly's limited new-account trial is not a free plan through December 15.
+## Inference estimate and measured use
 
-Persistent storage is mandatory for accounting and temporary workspaces across restarts. Keep one Uvicorn worker and one service instance; do not horizontally scale SQLite-backed workspaces or the in-process concurrency gate. Render's [disk limitations](https://render.com/docs/disks) also restrict its service to one instance and cause brief deployment downtime.
-
-## Inference estimate and measurement
-
-Verified live model: **`nvidia/nemotron-3-super-120b-a12b`**, through `https://api.tokenfactory.nebius.com/v1/`. The implementation's October 16 catalog pricing is **$0.30/million input tokens and $0.90/million output tokens**, with no assumed cached-token discount. Application cache reuse makes no inference request. Recheck the official [Token Factory catalog/pricing](https://tokenfactory.nebius.com/) and authenticated availability before future runs.
-
-Cost calculation:
+The verified model is **`nvidia/nemotron-3-super-120b-a12b`**, through `https://api.tokenfactory.nebius.com/v1/`. The implementation's October 16 [Token Factory catalog/pricing](https://tokenfactory.nebius.com/) snapshot is **$0.30/million input and $0.90/million output tokens**, with no cached-token discount assumed. Application-cache reuse makes no inference request. Recheck rates and model availability before future paid work.
 
 ```text
-estimated_usd = input_tokens × 0.30 / 1,000,000
-              + output_tokens × 0.90 / 1,000,000
+estimated_usd = input_tokens x 0.30 / 1,000,000
+              + output_tokens x 0.90 / 1,000,000
 ```
 
-For planning only, an uncached small course using 20,000 input and 12,000 output tokens across generation and review would cost about **$0.0168**. At that assumed average, 150 courses would be $2.52. This is a hypothetical workload, not a measurement or service guarantee. Larger source selections, multiple modules, and section regeneration consume more tokens. The application's conservative preflight reservation may be much higher than typical actual usage and governs admission.
+| Real sample | Input tokens | Output tokens | Estimate from reported use | Measured job time |
+| --- | ---: | ---: | ---: | ---: |
+| First local acceptance | 5,984 | 1,397 | $0.0030525 | 8.62 seconds |
+| Local prompt-v2.1 follow-up | 8,079 | 1,878 | $0.0041139 | 10.50 seconds |
+| **Development subtotal** | **14,063** | **3,275** | **$0.0071664** | Two jobs |
+| Funded Fly sample: generation and support review | 6,869 | 2,526 | $0.0043341 | 15.8418 seconds |
+| **Combined development and hosted use** | **20,932** | **5,801** | **$0.0115005** | Three jobs |
 
-| Approved live-test field | Recorded result |
-| --- | --- |
-| Approval and maximum | Up to **$1 total approved October 16, 2026**, within the approved $3 aggregate inference/$15 Fly envelope; development key saved privately. Final content/deployment acceptance remains open. |
-| Exact model and runtime endpoint | Authenticated catalog and real call verified `nvidia/nemotron-3-super-120b-a12b` at `https://api.tokenfactory.nebius.com/v1/` |
-| First run: source and result | Original garden sample; **ten sections completed** |
-| First run: generation usage and application estimate | **2,189 input + 1,010 output tokens; $0.0015657** |
-| First run: support-review usage and application estimate | **3,795 input + 387 output tokens; $0.0014868** |
-| First run: total and duration | **5,984 input + 1,397 output tokens; $0.0030525; 8.62 seconds**; original evidence retained unchanged |
-| Follow-up: v2.1 prompt | **8,079 input + 1,878 output tokens; $0.0041139; 10.5 seconds** |
-| Aggregate reported usage and application estimate | **14,063 input + 3,275 output tokens; $0.0071664**, within the original $1 test cap; provider invoice not verified |
-| Aggregate accounting | No outstanding reserved/uncertain amount recorded |
-| Human content review | **Owner acceptance pending, not fully passed.** Both runs had zero automatic flags; this did not establish complete support/coverage. |
-| Cached repeat | Consult the live acceptance record before claiming no extra request/charge; not separately established by this table |
+The hosted sample completed **two provider calls** and ten sections, including three quiz questions. Its 31 attached quotations resolve exactly to the original licensed chapter. The course is **needs review**, with a visible missing-evidence flag on its uncited introduction. Further inspection found unsupported assurance wording and citation/precision gaps elsewhere. Exact quotations and a successful provider response do not establish complete factual support.
 
-Manual review of the first run found that an introduction cited only a title and that the wording “ensure proper absorption” overstated the source. The original evidence is retained unchanged. The v2.1-prompt follow-up removed that assurance and added substantive citations, but inspection still found partial source coverage and approximate-precision issues despite zero automatic flags. These findings remain distinct from successful API execution and schema validation. Owner review remains pending; neither run establishes complete educational-content acceptance or completion of the deployment's live-test condition.
+An equivalent second hosted course reused the cache with **zero additional provider calls and no shared-ledger change**. Seven text-only corrections were then saved to that cached copy through the real browser editors, taking its version from 5 to 12 without inference. The original first course and exports remained unchanged. The edited copy retains manual-edit and dependency review flags; **owner content acceptance remains pending**. This is evidence of the editing/review workflow, not a fresh support-review result or owner sign-off.
 
-Provider-reported tokens produce the application estimate; the provider's invoice and account usage are the financial authority. A received malformed response can still cost money. Timeouts or lost usage can have uncertain billing outcomes. Do not clear their reservations or automatically repeat them merely to make a test pass.
+The first two runs used the original persistent development-test ledger. The hosted service has its own persistent operator ledger; the combined figures above reconcile both locations against the aggregate approval. The active hosted limit is **$2.9928336**, spend **$0.0043341**, and remaining allowance **$2.9884995**. Further development charges must reduce the remaining approved hosted capacity; do not treat the two ledgers as separate grants or reset either to create headroom. Do not presume the entire $1 acceptance ceiling was spent.
 
-The prepared [live acceptance harness](../../scripts/live_nebius_check.py) writes private durable accounting outside the repository and creates an exclusive `active.lock` before checking the model/running generation. Successful completion releases its own matching lock. Failure or interruption retains it: stop any active process, review the ledger, provider usage, and outcome, and only then decide whether manual removal is safe. An old PID or elapsed time does not prove an unbilled request. Do not delete the lock, create a new evidence directory, reset the ledger, or rerun automatically to bypass this safeguard. The script's human content-review field remains pending until a person inspects the generated claims against the chapter.
+For planning only, a small uncached course using 20,000 input and 12,000 output tokens across generation and review would cost **$0.0168**; 150 such courses would cost $2.52. This is a hypothetical workload, not a measured average or guarantee. Larger selections, more modules and regeneration consume more tokens. Conservative reservations govern admission and can exceed typical measured use.
+
+Provider invoices and account usage are the financial authority. Malformed responses can be billable; lost usage or timeouts can leave an uncertain charge. Preserve uncertainty reservations and never automatically repeat a request to make a test pass. Both adapters disable SDK retries. The [live acceptance harness](../../scripts/live_nebius_check.py) uses an exclusive safety lock and durable accounting outside the repository; failures retain the lock for deliberate review. An old PID or elapsed time does not prove a request was unbilled.
 
 ## Credit validity and paid fallback
 
-Count promotional credit as **$0 guaranteed** in the approval proposal until the actual account records show amount, issuance, expiry, permitted use, and availability for this model. Published offers are not proof of a grant.
+**Count promotional credit as $0 guaranteed** until private account records establish amount, issuance, expiry, permitted use, and availability for this model. No account-verified expiration timestamp is configured. Public offer terms alone do not establish funding through December 15.
 
-- Signup trial: $1 valid for 30 days; October 16 signup would expire around November 15, before judging. [Official billing documentation](https://docs.tokenfactory.nebius.com/other-capabilities/billing-new).
-- Builder Program: $25, 90 days from issuance. October 16 issuance would reach January 14, 2027; August 26 issuance would expire November 24. Its [terms](https://nebius.com/builders-terms-and-conditions) restrict usage to qualifying prototyping/experimentation and permit changes or suspension.
-- Direct hackathon $25 offer: public [resources](https://nebiusglobalaihackathon.devpost.com/resources) do not establish a precise expiry. Obtain actual account/offer terms; do not borrow the Builder offer's 90-day rule.
+| Offer | Published validity | Limit of the current evidence |
+| --- | --- | --- |
+| New-account $1 trial | 30 days from signup | An October signup would expire before judging ends; verify the actual expiration privately |
+| Builder Program $25 | 90 days from issuance | No account-verified expiry timestamp is configured; do not infer issuance/expiry from a generic offer |
+| Direct hackathon $25 offer | Public offer does not establish an exact expiry | Obtain its actual account/offer terms; do not borrow the Builder validity rule |
 
-The approved paid fallback is the remaining portion of the aggregate $3 inference envelope: at most **$2.9928336** after the two test estimates, reduced by further approved charges and subject to final content/deployment acceptance and owner-controlled private setup. No card is added or topped up here. Nebius describes automatic card charging at a billing threshold or negative balance at month start; an app allowance cannot cap other account activity. Use a dedicated demo project/key and reconcile its dashboard with the ledger. An optional `NEBIUS_CREDIT_EXPIRES_AT` records a verified timestamp only; it does not create or extend credit.
+Sources: [Token Factory billing](https://docs.tokenfactory.nebius.com/other-capabilities/billing-new), [Builder terms](https://nebius.com/builders-terms-and-conditions), and [hackathon resources](https://nebiusglobalaihackathon.devpost.com/resources). Builder terms restrict credits to qualifying prototyping/experimentation and allow changes or suspension. An observed grant is not a blanket production entitlement.
 
-## Prepared configuration
+The paid fallback stays within the approved **$3 aggregate inference envelope**. After all measured development and hosted use, **$2.9884995** remains by application estimates, subject to invoice reconciliation and any further approved charges. No new agreement, payment method or top-up is accepted by this document. Nebius describes automatic charging at a billing threshold or a negative balance at month start; an app allowance does not cap unrelated account activity. An optional `NEBIUS_CREDIT_EXPIRES_AT` must contain an account-verified timestamp. Until that is known and configured, the monitor cannot provide a meaningful credit-expiry warning.
 
-Files: [Dockerfile](../../deploy/Dockerfile), [Compose rehearsal](../../deploy/compose.judging.yaml), [Fly proposal](../../deploy/fly.toml), [Render alternative](../../deploy/render.yaml), and [secret-free environment template](../../deploy/.env.judging.example). The templates specify these defaults:
+## Runtime configuration and deployed evidence
 
-| Control | Prepared value |
+Configuration sources are the [Dockerfile](../../deploy/Dockerfile), [Fly template](../../deploy/fly.toml), [Render alternative](../../deploy/render.yaml), [Compose rehearsal](../../deploy/compose.judging.yaml), and [secret-free environment template](../../deploy/.env.judging.example). The reusable templates keep allowance zero. The active deployment overrides that setting in Fly's runtime secret environment; the provider key, judge-password hash and read-only operator token also remain runtime secrets.
+
+| Control | Deployed or configured value |
 | --- | --- |
-| Shared inference allowance | **$0** until final content/deployment checks pass; at most $2.9928336 remains from the approved $3 after both test estimates, before further approved acceptance/development calls |
+| Origin | `https://easy-street-agammann-2026.fly.dev`, exact HTTPS origin |
+| Shared inference | Limit $2.9928336; measured remaining $2.9884995 at this checkpoint |
 | Session allowance | $0.50; operator assistance must keep legitimate judging possible |
-| Concurrency | At most 2 provider calls globally; one application process |
+| Concurrency | At most 2 provider calls; one Uvicorn worker and one instance |
 | Visitor capacity | At most 100 temporary sessions |
-| Upload | 5 MiB; bounded extraction and normal format checks still apply |
-| Course | At most 3 modules, 3 assignments, and 3 quizzes in the hosted demo |
-| Retention | 24 hours; deletion and active-job cleanup behavior require acceptance tests |
-| Demo end | `2026-12-16T08:00:00+00:00` — midnight PST at the end of December 15, after judging ends at noon |
-| Host origin | Exact approved HTTPS origin; no wildcard origins |
+| Upload/source | 5 MiB; one readable chapter, at most 100,000 characters/1,000 passages; bounded PDF expansion/work |
+| Course | At most 3 modules, 3 assignments and 3 quizzes |
+| Application retention | 24 hours configured; actual scheduled cleanup passed with an isolated expired-session fixture; active work can delay removal |
+| Volume snapshots | Daily snapshots configured with five-day retention |
+| Application expiry | `2026-12-16T08:00:00+00:00`, midnight PST at the end of December 15, after judging ends at noon |
 
-Never put `NEBIUS_API_KEY` or the operator token in a browser, Git, image build arguments, logs, screenshots, or exports. Use the approved host's runtime secret environment. The separate judge access code is entered only into the HTTPS login form and private testing instructions; keep it out of Git, images, logs, screenshots, exports, and public guides. It is not a provider key or operator token.
+The **initial funded-host acceptance** used source **`0e0c17d0915e815754f547fbb7ecc388bdaa6c11`**, with green [CI run 38997180882](https://github.com/agammann/easy-street/actions/runs/38997180882). Its historical local Docker image ID is **`sha256:c5766ffd14db8851a766bed0e72aca273ec6f01a0cdadc560cb780217ae50997`**; its registry manifest is **`sha256:2ab6741c4d0c9e6ec406ff8d3eb4573f921353d69f6936ac945407910cdaf25b`**. These identify different image objects and must not be interchanged. The two funded hosted calls above remain evidence from this initial deployment.
 
-Create private access values locally using [scripts/configure_judging.py](../../scripts/configure_judging.py):
+The **current confirmed deployment** uses source **`0c010c00c160e1cb47c60eea7f758050c23a3831`** on the same Machine and volume, with **1/1 Fly health checks passing**. Its local/registry OCI index is **`sha256:7242015d8cdd49d910f64b6c1c16dc5b458594072bffab0c2330411cdb4f0592`**; Fly reports the deployed platform manifest **`sha256:9b432a9effddd554fbac7f105eb15f470a9611da5e47ad0c0f824fc4d48552fc`**. The index and platform manifest identify different objects. All three jobs in [CI run 38999513875](https://github.com/agammann/easy-street/actions/runs/38999513875) passed: Linux had 279 backend tests pass, each macOS job had 278 pass and one skip, and all jobs passed the 49 frontend tests, production build, packaging and installation checks. The 117-file source ZIP has SHA-256 **`30d1acc83249add63385511874fd4af6912aa30a61a85e6c71feb474e502604f`**. The replacement also passed local acceptance under 512 MiB RAM and 0.5 CPU without inference.
 
-```powershell
-# Windows, from the repository root
-.\.venv\Scripts\python.exe scripts/configure_judging.py
-```
+This replacement clarifies active 24-hour workspace retention versus retained backups, links the retention details, and describes deletion of active files without implying that all backup copies disappear. The final deployed-server audit passed **31/31 checks**; original source/course hashes and the two-call ledger remained unchanged, with no reserved or uncertain amount. Browser checks verified the revised retention copy, persisted version-12 ten-section course, and a 390-pixel layout without horizontal overflow. These replacement checks made **zero additional provider calls**. Provider/accounting code, the measured cost, allowance and remaining budget are unchanged; CI, deployment identity, browser checks and funded inference remain separate evidence.
 
-```sh
-# macOS/Linux
-.venv/bin/python scripts/configure_judging.py
-```
+The actual mounted directory was verified owner/group **10001:10001**, mode **0700**, and writable by the nonroot application. One real host restart preserved the authenticated cookie, source, and complete course. Initial zero-allowance host checks verified two independent sessions, CSRF/Origin controls, upload isolation, a pre-dispatch spending rejection, offline ten-section generation, three exports, and deletion of only the test workspaces. The subsequent funded sample and cache check above established actual remote inference. Export checks found no sensitive credential fields or known credential values; no credential values are published here.
 
-The helper prompts for a hidden access code of at least 12 characters and confirmation, then writes its PBKDF2 hash and a random operator token to ignored `deploy/.env.judging.local`, with generation allowance zero. It refuses to overwrite an existing private file and does not configure a provider key or make an API request. Keep the plaintext code in an approved password manager for the private Devpost testing field. After approval, transfer the hash/operator token into the host's runtime secret settings using a trusted local editor or the host's secure interface; do not print the file into chat, screenshots, or logs.
+A separate owned cleanup fixture was marked expired after its source and lack of jobs/provider calls were verified. Its source then returned 401, and the normal minute-scale maintenance removed both the session record and tenant directory. No forced cleanup, deletion endpoint or system-clock change was used, and other visitor data and the operator ledger remained unchanged. This verifies the deployed scheduled cleanup with a test expiry; it does not claim that a full 24-hour retention period elapsed.
 
-For regular local Nebius BYO setup, [scripts/configure_nebius.py](../../scripts/configure_nebius.py) separately prompts for a masked key and saves it to ignored `.env.local`. Run it with the same Python executable as above. It preserves other configuration and makes no API request. Opening that prompt is approved; the developer enters the credential privately and never in chat. That development file is never copied into the judging deployment; configure its dedicated operator key directly in the approved host's secret environment.
+The Fly volume bootstrap was completed under the approved deployment: a temporary same-group sleeping process allowed initialization of the dedicated mount, then the normal nonroot app replaced it. The change was limited to that mount, nonrecursively, and the inventory was checked for one Machine and volume. For a future fresh disk, verify the exact mount and that it is empty before initializing ownership; do not apply that procedure blindly to an existing data volume. A release command cannot initialize a volume it does not mount. See [Fly configuration](https://docs.fly.io/reference/configuration), [administrative console](https://docs.fly.io/flyctl/cmd/fly_ssh_console), and [process groups](https://docs.fly.io/launch/processes).
 
-The image builds the frontend in a separate Node stage and runs Python 3.12 as UID/GID 10001. It copies only named source directories/assets, not the whole workspace. Verify the mounted disk is writable as that user during the approved deployment; build-time ownership alone does not prove the actual host mount's permissions. The image intentionally omits optional OCR binaries. Readable PDF/DOCX/TXT uploads remain available; local installations retain optional OCR.
+For future approved updates, build locally and use `fly deploy --config deploy/fly.toml --ha=false --local-only` with the correct private app configuration. Verify actual resources afterward: the TOML is not a Machine-count ceiling. Do not horizontally scale the SQLite-backed workspace or its in-process concurrency gate. Do not add a remote builder or paid resource without approval.
 
-### Fly deployment gates
+Application deletion removes active workspace data once work stops; an existing host snapshot can retain it for the configured five days. Snapshot restoration can roll back accounting. Reconcile later provider charges and uncertain reservations before reopening inference after a restore. A successful restart is not a tested snapshot restore or a guarantee of immediate backup erasure.
 
-Fly CLI authentication and strict [configuration](../../deploy/fly.toml) validation have passed. Fly hosting/$15 are approved, with deployment conditional on final checks and complete live-test/content acceptance. No paid resources have been created. Authentication/configuration validation do not establish a running service or mounted-volume permissions. Remaining runtime credentials, new agreements, and payment/account steps stay owner-controlled. Once those private setup steps and conditional gates are satisfied:
+Local BYO installations remain separate. [scripts/configure_nebius.py](../../scripts/configure_nebius.py) saves a masked key to ignored local configuration without making an API call. [scripts/configure_judging.py](../../scripts/configure_judging.py) creates a judge hash/operator token with allowance zero and refuses to overwrite its private output. Never copy development environment files into the image or expose keys, judge credentials or operator tokens through Git, build arguments, URLs, logs, screenshots or exports. Judges receive only the application access code through private instructions.
 
-1. Select the actual app name and HTTPS `fly.dev` origin, confirm the `iad` quote/capacity, and keep exactly one shared-CPU Machine and one 1 GB volume. Do not add an optional dedicated IP, domain, database, paid support, remote builder, or automatic disk growth.
-2. Configure runtime secrets in the approved secure host flow. Keep the allowance at zero while checking storage and access controls. Do not put a secret in a shell command, TOML, build argument, transcript, or browser frontend.
-3. Resolve mounted-volume ownership before opening access. The application must write as UID/GID 10001; an image's `chown` does not initialize a newly mounted block device. The official mount configuration documents no UID/GID option. The Fly bootstrap below remains unexecuted on Fly; the corresponding local Docker permission sequence passed. A Fly release command runs without mounted volumes, so it cannot perform this initialization. See the [configuration reference](https://docs.fly.io/reference/configuration) and [administrative console reference](https://docs.fly.io/flyctl/cmd/fly_ssh_console).
-4. From the repository root, the deployment command is `fly deploy --config deploy/fly.toml --ha=false --local-only`. Its conditional approval takes effect **only after final checks and a passing live Nebius test**, with owner-controlled account setup complete. Local Docker builds avoid a remote build service; the deployment still pushes an image and creates billable runtime resources. Verify the actual Machine/volume/IP list and billing after deployment, rather than assuming the TOML limits Machine count.
-5. Verify the real mounted disk survives restart, the host check passes, and a fresh browser completes the real approved Nebius workflow. Enable only the remaining approved inference amount after subtracting measured development charges. Confirm email failure and low-allowance delivery before offering the URL to judges.
+## Health, alerts and actual monitoring
 
-**Proposed Fly mount bootstrap — not executed on Fly:** with CLI authentication complete, satisfy remaining private account/agreement steps and final acceptance gates, then make a temporary local configuration with the same `app` process group, VM shape, and volume. Override its command with `[processes] app = "/bin/sleep infinity"`, omit public services/HTTP checks, and keep the image's UID 10001. Deploy that temporary configuration with `--ha=false --local-only --no-public-ips`; then verify exactly one Machine and one intended volume. This is a billable deployment step, not a free local check.
+The account is on **Better Stack Free**. Two active monitors were observed **Up**, using HTTPS **GET**, three-minute checks, TLS verification on, redirects off, and account email notifications only. No paid plan, SMS, calls, push service or public status page was enabled.
 
-Connect to that exact running Machine with `fly ssh console --machine ID --user root`. Verify `/var/lib/easy-street` is the dedicated mounted volume and contains no existing application data. Initialize only that directory, nonrecursively, to owner/group `10001:10001` and mode `0700`. Verify creation and removal of a temporary file after dropping all supplementary groups and switching to UID/GID 10001. Do not recursively change unrelated paths, use world-writable permissions, or run the web process as root. Finally deploy the normal configuration to the same default `app` process group and verify the application runs as UID 10001 with persistent writes. Fly documents that [process commands replace Docker CMD and subsequent deploys update existing same-group Machines](https://docs.fly.io/launch/processes). This sequence is based on documented capabilities; actual mounted-volume behavior still requires host acceptance.
+| Monitor | Check | Authentication and result |
+| --- | --- | --- |
+| `5085474` | `/health/ready` returns 2xx | No credential; observed Up |
+| `5085477` | `/api/operator/status` contains `"needs_attention":false` | Private read-only Bearer header; observed Up |
 
-The **local Docker rehearsal passed** using a uniquely named disposable volume with `volume-nocopy`: the mounted directory began empty and root-owned, and UID 10001 could not write. Administrative execution verified the exact mount, changed only its directory ownership/mode nonrecursively, and then UID 10001 created and removed a temporary file. The sleeping main process remained UID 10001 throughout. No ports were published, networking was disabled, no API key was supplied, and the disposable container/volume were removed and independently checked absent. This validates the local permission sequence, **not Fly platform acceptance**.
+The read-only operator token is held only in private monitor configuration. Better Stack does not receive the Nebius key or judge access code. Never place monitor credentials in a URL, plaintext command argument, public guide, screenshot or response dump. References: [free tier](https://betterstack.com/pricing), [check frequency](https://betterstack.com/docs/uptime/check-frequency/), [keyword/custom-header API](https://betterstack.com/docs/uptime/api/create-a-new-monitor/), and [request authentication](https://betterstack.com/docs/uptime/request-parameters-headers-and-http-authentication/).
 
-Fly's daily snapshots can retain deleted uploads for up to the configured five days. Disclose this host-level backup retention in the final privacy/testing instructions, verify the schedule, restrict account access, and remove retained data/snapshots when the approved retention period ends. Application deletion removes the active workspace but cannot erase an existing provider snapshot immediately. Restoring a snapshot can roll back accounting; reconcile later provider charges and uncertain reservations before reopening inference.
+- `/health/live` reports process liveness and never calls a model.
+- `/health/ready` reports infrastructure readiness. It can remain HTTP 200 while `generation_available` is false; HTTP status alone does not detect exhausted funds.
+- `/api/operator/status` reports allowance/uncertainty, observed provider-stage failure, deployment expiry, verified credit expiry within seven days, missing configuration and cleanup failures. Provider health reflects actual adapter outcomes, not synthetic inference or factual correctness. It does not read the provider credit balance or Fly bill.
 
-## Local container rehearsal
+The low-allowance threshold is the final **20% of the enabled hosted limit**, approximately **$0.5986** at the current $2.9928336 limit, with a $0.10 minimum. The operator keyword check observes that attention flag without generating a course. Credit-expiry checks become useful only after an actual expiry timestamp is verified and configured. Application monitoring is not provider-balance or hosting-cost monitoring.
 
-Rehearsal is independent of deployment. Use mock tests before any real provider test. Never insert an actual key into a copied shell command.
+A labeled test produced incident **`1033213383`**, which changed from Down to automatically resolved. The owner explicitly confirmed receipt of **both the new-incident and incident-resolved emails**. The account's team was verified to contain one member, the owner, and both three-minute monitors remain Up. This verifies the normal free email delivery/recovery route with a labeled test; it does not continuously test a model or establish the provider's actual credit balance.
 
-1. Run `scripts/configure_judging.py` with a test-only access code, or supply test-only access values through the local process environment. In the ignored `deploy/.env.judging.local` file, add `EASY_STREET_DEMO_ALLOW_HTTP=1` and `EASY_STREET_DEMO_ORIGIN=http://localhost:8000` for localhost rehearsal. Leave the generation allowance at zero and the provider key blank unless a specific paid test is approved. Readiness will correctly report unavailable when the provider key is absent.
-2. From the repository root, validate without rendering secret values:
+Attempting to add an outgoing integration for an external email address displayed an upgrade requirement while the account remained Free. **No paid upgrade or external-email integration was configured or needed for the verified route.** The account's normal free email notifications reached the owner. The approved scope remains free monitoring and labeled test alerts. Other agreements or paid services require separate approval.
 
-   ```sh
-   docker compose --env-file deploy/.env.judging.local -f deploy/compose.judging.yaml config --quiet
-   docker compose --env-file deploy/.env.judging.local -f deploy/compose.judging.yaml build
-   docker compose --env-file deploy/.env.judging.local -f deploy/compose.judging.yaml up -d
-   python scripts/demo_healthcheck.py --url http://127.0.0.1:8000
-   ```
-
-3. Test login, two independent visitors, upload, provider-unavailable behavior, export/deletion where available, restart persistence, and cleanup. The zero allowance must prevent paid calls. Use the separately approved live test to validate real generation.
-4. Stop only the rehearsal service with `docker compose -f deploy/compose.judging.yaml down`. Preserve its volume until its accounting is reviewed. Do not remove or reset a live ledger to bypass a spending cutoff.
-
-The diagnostic performs GET requests only. It does not invoke a model, retry, notify, or install a scheduled monitor. Avoid commands that print fully interpolated Compose configuration or container environments.
-
-## Health, alerts, and actual monitoring state
-
-**Monitoring is not configured and delivery has not been tested.** The owner approved free Render/Better Stack email monitoring, labeled failure/recovery test alerts, and the specific Better Stack free-account Terms/Privacy and sign-in email. Signup was confirmed and a magic link sent; the owner is completing sign-in privately. The approved monitor credential is the separate read-only operator token. Actual monitor configuration and delivery verification remain pending. Fly CLI authentication/configuration validation passed; paid resources and actual host acceptance remain pending. There is no native Fly billing-alert service to enable. Approval of Render email settings does not authorize an unrelated paid monitoring product. Do not claim coverage through judging before actual delivery is verified.
-
-Prepared endpoints:
-
-- `/health/live`: process liveness, no credentials or provider call.
-- `/health/ready`: infrastructure readiness. It remains HTTP 200 when infrastructure works but generation is unavailable; `generation_available` must then be false. Restarting cannot repair an exhausted allowance.
-- `/api/operator/status`: bearer-protected accounting/attention state without visitor content. It flags the final 20% of the application allowance, uncertain calls, recorded provider-stage failure, demo expiry, verified credit expiry within seven days, missing provider configuration, and cleanup failures. The persisted provider-health flag reflects observed calls, not a synthetic model request. It does not read the provider's real account balance or Fly bill. Use the separate read-only operator token.
-
-Approved free scope, awaiting configuration and verification:
-
-1. Complete the owner-controlled Better Stack magic-link sign-in. Its specific free-account Terms/Privacy and sign-in email were approved, and signup confirmation was observed; do not repeat signup or claim sign-in completion before confirmation. The [free personal tier](https://betterstack.com/pricing) includes ten monitors/heartbeats and email alerts; free checks have a [three-minute minimum interval](https://betterstack.com/docs/uptime/check-frequency/). Confirm the account stays free. No paid checks, SMS, calls, push integrations, or public status page are proposed. Other new host/service agreements remain private owner steps; Fly CLI authentication is already complete.
-2. Configure two HTTPS **GET** checks, each every three minutes: `/health/ready` must return 2xx; `/api/operator/status` must contain the current compact JSON keyword `"needs_attention":false`. For the latter, set a private `Authorization: Bearer` header containing only the separate read-only operator token. Set TLS verification on, redirects off, email on, and SMS/call/push off. The [monitor API](https://betterstack.com/docs/uptime/api/create-a-new-monitor/) supports keyword checks and custom headers as an array of `{name,value}` objects; the [authentication documentation](https://betterstack.com/docs/uptime/request-parameters-headers-and-http-authentication/) confirms Bearer headers. Verify these settings on the actual free account before claiming coverage.
-3. Better Stack must retain that read-only token in private monitor configuration; it must never receive the Nebius key or judge access code. Transfer it through a trusted private setup flow, never a URL/query string, plaintext command argument, Git, chat, screenshots, or response/configuration logs. A local runtime script can read secrets without printing them and return only monitor IDs. Do not dump API responses or screenshots containing configured headers.
-4. Alert at **20% remaining of the enabled hosted allowance**, at **7 days before any verified credit expiry**, and on observed provider failures/other attention flags. At the current maximum $2.9928336 hosted allowance, the 20% threshold would be about $0.5986, reduced if further test charges lower the enabled limit. Reconcile the ledger and provider dashboard. A status-only HTTP check cannot detect low allowance, and no check here continuously invokes a model or verifies actual provider balance. Review host storage pressure and bills separately; the manual billing review route remains pending.
-5. Use the owner's verified account email. For a labeled test, temporarily set the keyword monitor's required keyword to an impossible `TEST` value, wait for its incident email, then restore the expected keyword and wait for recovery. This changes only the monitor's test condition; it needs no inference request or application outage. Verify both messages with the owner, restore normal settings, and record monitor IDs, three-minute intervals, credential-free endpoint settings, test time, recipient confirmation, and escalation owner below. A delivery test does not replace verification of the real low-allowance/provider-failure condition using controlled test state.
-
-The latest local backend/integration check reports **276 passed, 3 skipped in 35.58 seconds**, including mocked provider-health behavior. That is distinct from the two real runs and the ongoing owner content review. Neither result establishes a configured monitor or successful email delivery.
-
-| Monitoring evidence | Actual state |
+| Operational evidence | Current state |
 | --- | --- |
-| Approved service/destination | Free Render/Better Stack email checks and labeled tests to verified account email approved; no paid service approved |
-| Better Stack account access | Specific free Terms/Privacy/sign-in email approved; signup confirmed, owner magic-link sign-in pending |
-| Fly native billing notifications | Unsupported by current official documentation; no automatic $15 cap established |
-| External availability monitor | Not configured |
-| Authenticated low-balance/expiry monitor | Not configured |
-| Failure and recovery receipt | Not tested |
-| On-call owner and response route | Owner confirmation pending |
-| Manual Fly billing review and response route | Pending owner arrangement; no automated hosting-cost alert configured |
+| Availability and authenticated attention checks | Two configured monitors, observed Up; three-minute interval |
+| Labeled outage/recovery incident | Test incident automatically resolved |
+| Outage email | Owner confirmed receipt of the incident-started test email |
+| Recovery email | Owner confirmed receipt of the incident-resolved test email |
+| Alert recipient | Verified one-member team, owner only; no personal address published |
+| External-email integration | Upgrade-gated; not configured; no upgrade purchased |
+| Operator response/escalation route | Owner arrangement still to be recorded |
+| Fly bill review | Manual review cadence/response route pending; no native alert or hard $15 cap |
+| Provider credit expiry | Official offer terms documented; account-specific expiry unverified |
 
-For a manual diagnostic after approval, set the operator token securely in the process environment and run:
+For a manual diagnostic, securely supply the operator token in the process environment and run:
 
 ```sh
-python scripts/demo_healthcheck.py --url https://APPROVED-HOST --operator --expect-generation
+python scripts/demo_healthcheck.py --url https://easy-street-agammann-2026.fly.dev --operator --expect-generation
 ```
 
-The script prints booleans only, never tokens or response bodies. Exit 0 means its selected checks passed; 1 means attention; 2 means invalid local configuration. Running this command once is not ongoing monitoring.
+The diagnostic prints booleans, never credentials or raw responses. Exit 0 means its selected checks passed, 1 means attention, and 2 means invalid local configuration. It makes GET requests only and does not invoke a model, retry, notify or install monitoring. Routine mocked tests and a one-time diagnostic are distinct from the configured monitors and delivery evidence above.
 
 ## Emergency cutoff and recovery
 
-The shared server allowance covers actual spend plus outstanding reservations and blocks new paid work at the cutoff. The initial $0 value intentionally blocks inference. Cancellation may not stop an in-flight request or its charge. Separate provider-account controls and usage reconciliation remain necessary.
+The persistent server allowance counts measured spend plus reservations and blocks new paid work at its limit. Templates start at zero; the deployed allowance is now funded only within the approved inference envelope. Cancellation may not stop an in-flight charge. An ambiguous call remains reserved rather than being silently replayed. Provider-account controls and usage reconciliation remain necessary.
 
-**Reaching the cutoff interrupts live judging and requires intervention.** Before enabling the deployment, name an operator and a contact route in the private judging instructions. On an incident: inspect protected ledger and provider dashboard, preserve uncertain reservations, stop abusive access if present, and obtain approval for any additional funds. Raise the allowance only within the approved total. Restore availability, verify a fresh judge session, and confirm the alert recovery. Do not silently reset accounting or substitute a recording for a working service.
+| Existing safeguard | Cost-control behavior |
+| --- | --- |
+| Persistent allowance checks | Reserve conservative estimated costs and check the shared allowance before each provider call; deletion of a visitor workspace does not erase shared accounting |
+| Bounded work | Hosted chapter/module limits, 8,000 generation and 3,500 verification output tokens per call, and at most two concurrent provider calls constrain each request |
+| Duplicate and cache handling | Reuse matching request IDs and saved results within the visitor workspace instead of repeating inference |
+| Retry and uncertainty handling | No automatic SDK retries; unresolved billing outcomes retain reservations for review |
+| Low-allowance warning and emergency pause | The authenticated attention check feeds the tested email route; the pause below blocks new dispatches without resetting the ledger or stopping hosting charges |
 
-Keep adequate headroom before December 1. A judge should not need to pay, create a provider account, or wait for ordinary quota renewal. If the $0.50 temporary-session allowance or session capacity obstructs legitimate testing, the operator must provide a fresh testing session or approved adjustment promptly.
+**Reaching the cutoff interrupts live judging and requires operator intervention.** Record the owner's response route in private testing instructions before offering final judge access. On an alert, inspect the protected ledger and provider dashboard, retain uncertain reservations, stop abusive access if present, and obtain approval for additional funds. Adjust allowance only within the approved total. Verify a fresh judge workflow and the monitor's recovery afterward. Never reset accounting or replace a working service with a recording to hide an interruption.
 
-After judging ends, obtain the owner's direction to stop hosting and revoke the dedicated key. The application's expiry stops generation; it does not cancel host billing. Clean up temporary data and snapshots according to the final approved privacy policy. Retain non-content accounting evidence needed for reconciliation.
+For an emergency pause on the existing deployment, the authenticated operator can run:
+
+```sh
+fly secrets set EASY_STREET_DEMO_BUDGET_USD=0 --app easy-street-agammann-2026
+```
+
+This changes a non-credential allowance setting and restarts the existing service. It preserves the persistent ledger and prevents new paid dispatches; an already dispatched request can still be billed. The protected attention monitor will alert. It does not stop Fly hosting charges. Before reopening, reconcile both development and hosted charges, choose a limit within the remaining approved total, and confirm the health check and email recovery.
+
+Keep enough headroom before December 1. Judges must not need a personal provider account, key, payment or ordinary quota renewal. If a session allowance or capacity cap obstructs legitimate testing, the operator must provide a fresh testing session or an approved adjustment promptly. Monitoring, receipts and an operator response must stay operational; the current setup alone cannot guarantee service through December 15.
+
+After judging, obtain the owner's direction to stop hosting and revoke the dedicated key. **Application expiry does not stop Fly billing.** Clean up temporary data and snapshots under the final privacy policy, and retain non-content accounting needed for reconciliation. Do not leave the Machine or volume running on the assumption that the application's end date cancels them.
