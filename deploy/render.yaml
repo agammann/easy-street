@@ -1,0 +1,55 @@
+# Proposal only. Do not apply this paid Blueprint without owner approval.
+# Select this path as the Blueprint file during approved setup.
+previews:
+  generation: "off"
+services:
+  - type: web
+    name: easy-street-judging
+    runtime: docker
+    plan: 0.5c-512mb
+    region: oregon
+    branch: hackathon/nebius-nemotron-2026
+    dockerfilePath: ./deploy/Dockerfile
+    dockerContext: .
+    autoDeployTrigger: "off"
+    numInstances: 1
+    healthCheckPath: /health/ready
+    disk:
+      name: easy-street-judging-data
+      mountPath: /var/lib/easy-street
+      sizeGB: 1
+    envVars:
+      - key: PORT
+        value: "8000"
+      - key: EASY_STREET_DEMO_DATA_DIR
+        value: /var/lib/easy-street
+      - key: EASY_STREET_DEMO_ORIGIN
+        sync: false
+      - key: EASY_STREET_JUDGE_PASSWORD_HASH
+        sync: false
+      - key: EASY_STREET_OPERATOR_TOKEN
+        sync: false
+      - key: NEBIUS_API_KEY
+        sync: false
+      - key: EASY_STREET_DEMO_BUDGET_USD
+        value: "0"
+      - key: EASY_STREET_DEMO_SESSION_BUDGET_USD
+        value: "0.50"
+      - key: EASY_STREET_DEMO_ALLOW_HTTP
+        value: "0"
+      - key: EASY_STREET_DEMO_RETENTION_HOURS
+        value: "24"
+      - key: EASY_STREET_DEMO_MAX_SESSIONS
+        value: "100"
+      - key: EASY_STREET_DEMO_MAX_CONCURRENT
+        value: "2"
+      - key: EASY_STREET_DEMO_MAX_UPLOAD_MIB
+        value: "5"
+      - key: EASY_STREET_DEMO_MAX_MODULES
+        value: "3"
+      - key: EASY_STREET_DEMO_MAX_ASSIGNMENTS
+        value: "3"
+      - key: EASY_STREET_DEMO_MAX_QUIZZES
+        value: "3"
+      - key: EASY_STREET_DEMO_EXPIRES_AT
+        value: "2026-12-16T08:00:00+00:00"

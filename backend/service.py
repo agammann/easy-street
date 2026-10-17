@@ -2,25 +2,53 @@ import hashlib
 import json
 import threading
 import uuid
+from contextlib import nullcontext
 from pathlib import Path
 from .demo import DEMO_VERSION, demo_course, demo_module
 from .extraction import extract
 from .grounding import ground_sections, validate_structure
 from .models import GeneratedCourse, Verification
 from .planning import course_modules, module_passages, propose_modules, sync_outline
-from .provider import (MODEL, PROMPT_VERSION, MAX_GENERATION_TOKENS, MAX_VERIFICATION_TOKENS,
-                       UsageCounts, OpenAIProvider, cost, estimate, generation_input_bound, verification_input_bound)
+from .provider import (MODEL, PRICING, NEBIUS_MODEL, NEBIUS_PRICING, PROMPT_VERSION, MAX_GENERATION_TOKENS, MAX_VERIFICATION_TOKENS,
+                       UsageCounts, OpenAIProvider, NebiusProvider, ProviderOutputError, ProviderCallRejected,
+                       cost, estimate, generation_input_bound, verification_input_bound)
 from .store import Store, now
 
 
 class Service:
-    def __init__(self, data_dir: Path, budget_limit: float, provider=None):
+    def __init__(self, data_dir: Path, budget_limit: float, provider=None, providers=None):
         self.data_dir = data_dir
         self.store = Store(data_dir / "easy-street.sqlite3",budget_limit)
-        self.provider = provider or OpenAIProvider()
-        self.key_configured = provider is not None or bool(self.provider.api_key)
+        self.providers = {"openai":provider or OpenAIProvider(),"nebius":NebiusProvider()}
+        if providers:
+            if set(providers) - {"openai","nebius"}:
+                raise ValueError("Unsupported generation provider.")
+            self.providers.update(providers)
+        self._injected_providers = set(providers or {}) | ({"openai"} if provider is not None else set())
+        self.provider = self.providers["openai"]
+        self.key_configured = bool(getattr(self.provider,"key_configured",
+            "openai" in self._injected_providers or bool(getattr(self.provider,"api_key",None))))
         self.lock = threading.RLock()
+        self.document_guard = None
+        self.extraction_context = nullcontext
         self.recover()
+
+    def provider_for(self, course):
+        mode = course["mode"] if isinstance(course,dict) else course
+        if mode == "demo":
+            mode = "openai"
+        if mode not in self.providers:
+            raise ValueError("Unsupported generation provider.")
+        return self.providers[mode]
+
+    def provider_metadata(self, mode="openai"):
+        mode = "openai" if mode == "demo" else mode
+        provider = self.provider_for(mode)
+        nebius = mode == "nebius"
+        return {"name":mode,"model":getattr(provider,"model",NEBIUS_MODEL if nebius else MODEL),
+                "pricing":dict(getattr(provider,"pricing",NEBIUS_PRICING if nebius else PRICING)),
+                "key_configured":(bool(getattr(provider,"key_configured",mode in self._injected_providers))
+                                  if nebius else self.key_configured)}
 
     def recover(self):
         for job in self.store.all("jobs"):
@@ -41,7 +69,10 @@ class Service:
         existing = self.store.get("documents",digest[:24]) if not ocr_pages else None
         if existing and not existing.get("source_missing"):
             return {**existing,"cached":True}
-        value = extract(data,filename,ocr_pages=ocr_pages,allow_ocr_preview=True)
+        with self.extraction_context():
+            value = extract(data,filename,ocr_pages=ocr_pages,allow_ocr_preview=True)
+        if self.document_guard is not None:
+            self.document_guard(value,len(data))
         existing = self.store.get("documents",value["id"])
         if existing and not existing.get("source_missing"):
             return {**existing,"cached":True}
@@ -64,6 +95,9 @@ class Service:
             "mode":options.mode,"options":{k:getattr(options,k) for k in ("modules","assignments","quizzes","questions_per_quiz")},
             "outline":{"title":options.title,"modules":propose_modules(document,options)},
             "outline_approved":False,"status":"outline","sections":[],"review_flags":[],"created_at":now(),"updated_at":now(),"version":1}
+        if options.mode != "demo":
+            metadata = self.provider_metadata(options.mode)
+            course["provider"] = {"name":metadata["name"],"model":metadata["model"]}
         sync_outline(course,document)
         self.store.put_course(course)
         return course
@@ -136,9 +170,10 @@ class Service:
         if not document or document.get("source_missing") or course.get("source_missing"):
             raise ValueError("Reattach the original source document before estimating generation.")
         estimates = []
+        metadata = self.provider_metadata(course["mode"])
         for module in self.pending_modules(course,section_id):
             payload = self.payload(course,section_id,module["id"])
-            value = estimate(payload,bool(section_id),module_passages(document,module))
+            value = estimate(payload,bool(section_id),module_passages(document,module),pricing=metadata["pricing"])
             cached = self.store.cache_get(self.cache_key(course,payload)) is not None
             if course["mode"] == "demo" or cached:
                 value.update(estimated_max_usd=0,input_tokens_estimate=0,output_tokens_limit=0)
@@ -152,10 +187,15 @@ class Service:
         if all(item["cached"] for item in estimates):
             value["notice"] = "The saved generation and evidence review will be reused locally. No new provider calls or charges are required."
         value["budget"] = self.store.budget()
+        value["provider"] = metadata["name"]
+        value["model"] = metadata["model"]
         return value
 
     def cache_key(self,course,payload):
-        identity = {"payload":payload,"model":MODEL,"mode":course["mode"]}
+        metadata = self.provider_metadata(course["mode"])
+        identity = {"payload":payload,"model":metadata["model"],"mode":course["mode"]}
+        if course["mode"] == "nebius":
+            identity["provider"] = "nebius"
         if course["mode"] == "demo":
             identity["demo_version"] = DEMO_VERSION
         return hashlib.sha256(json.dumps(identity,sort_keys=True).encode()).hexdigest()
@@ -181,12 +221,15 @@ class Service:
                 raise ValueError("This course already has saved sections. Regenerate an individual section to preserve your edits.")
             modules = self.pending_modules(course,request.section_id)
             value = self.estimate(course,request.section_id)
-            if course["mode"] == "openai" and not self.key_configured and value["provider_calls_max"]:
-                raise ValueError("Configure OPENAI_API_KEY in the backend environment before generation.")
+            metadata = self.provider_metadata(course["mode"])
+            if course["mode"] != "demo" and not metadata["key_configured"] and value["provider_calls_max"]:
+                variable = "NEBIUS_API_KEY" if course["mode"] == "nebius" else "OPENAI_API_KEY"
+                raise ValueError(f"Configure {variable} in the backend environment before generation.")
             maximum = value["estimated_max_usd"]
             job = {"id":uuid.uuid4().hex,"course_id":course_id,"section_id":request.section_id,"status":"queued","stage":"queued",
                 "error":None,"created_at":now(),"updated_at":now(),"estimated_max_usd":maximum,"cancel_requested":False,
                 "module_ids":[m["id"] for m in modules],"total_modules":len(modules),"completed_modules":0,"current_module_id":modules[0]["id"]}
+            job["provider"] = {"name":metadata["name"],"model":metadata["model"]}
             existing = self.store.reserve_job(job,request.idempotency_key,maximum)
             if existing:
                 return existing,False
@@ -229,6 +272,9 @@ class Service:
             self.job_stage(job,"preparing")
         try:
             course = self.store.get("courses",job["course_id"])
+            provider = self.provider_for(course)
+            metadata = self.provider_metadata(course["mode"])
+            pricing = metadata["pricing"]
             document = self.store.get("documents",course["document_id"])
             modules = course_modules(course)
             module_ids = job.get("module_ids") or [m["id"] for m in self.pending_modules(course,job["section_id"])]
@@ -266,11 +312,11 @@ class Service:
                     if "generated" in checkpoint:
                         generated = GeneratedCourse.model_validate(checkpoint["generated"])
                     else:
-                        self.store.ensure_call_budget(job_id,cost(UsageCounts(generation_input_bound(payload),MAX_GENERATION_TOKENS)))
+                        self.store.ensure_call_budget(job_id,cost(UsageCounts(generation_input_bound(payload),MAX_GENERATION_TOKENS),pricing))
                         if not self.begin_provider_call(job,"generation_in_flight"):
                             return
-                        generated, usage = self.provider.generate(payload)
-                        self.store.usage(job_id,"generation",MODEL,usage,cost(usage))
+                        generated, usage = provider.generate(payload)
+                        self.store.usage(job_id,"generation",metadata["model"],usage,cost(usage,pricing))
                         checkpoint["generated"] = generated.model_dump()
                         self.job_stage(job,"generation_received")
                     validate_structure(generated,course["options"]["questions_per_quiz"],payload["target_section"],module["assignments"],module["quizzes"])
@@ -283,11 +329,11 @@ class Service:
                     if "verification" in checkpoint:
                         verification = Verification.model_validate(checkpoint["verification"])
                     else:
-                        self.store.ensure_call_budget(job_id,cost(UsageCounts(verification_input_bound(validation_payload),MAX_VERIFICATION_TOKENS)))
+                        self.store.ensure_call_budget(job_id,cost(UsageCounts(verification_input_bound(validation_payload),MAX_VERIFICATION_TOKENS),pricing))
                         if not self.begin_provider_call(job,"verification_in_flight"):
                             return
-                        verification, usage = self.provider.verify(validation_payload)
-                        self.store.usage(job_id,"verification",MODEL,usage,cost(usage))
+                        verification, usage = provider.verify(validation_payload)
+                        self.store.usage(job_id,"verification",metadata["model"],usage,cost(usage,pricing))
                         checkpoint["verification"] = verification.model_dump()
                         self.job_stage(job,"verification_received")
                 validate_structure(generated,course["options"]["questions_per_quiz"],payload["target_section"],module["assignments"],module["quizzes"])
@@ -334,16 +380,25 @@ class Service:
                 self.store.put_course(course)
                 job.update(status="complete",stage="complete",updated_at=now())
                 self.store.put_job(job,release=True)
-        except Exception:
+        except Exception as error:
             # Never return raw provider errors, which may contain source text or credentials.
             with self.lock:
-                uncertain = job["stage"].endswith("_in_flight")
+                known_usage = error.usage if isinstance(error,ProviderOutputError) else None
+                if known_usage is not None:
+                    self.store.usage(job_id,job["stage"],metadata["model"],known_usage,cost(known_usage,pricing),"invalid_output")
+                uncertain = job["stage"].endswith("_in_flight") and known_usage is None and not isinstance(error,ProviderCallRejected)
                 job.update(status="uncertain" if uncertain else "failed",updated_at=now(),
                     error=("Provider completion or billing is uncertain. No automatic retry was made; the remaining maximum cost stays reserved. Check provider usage before starting a new request." if uncertain else
                            "Generation stopped safely because output validation or the next-step budget check failed. No automatic retry was made. Review your source and options before a new request."))
+                if isinstance(error,ProviderCallRejected):
+                    job["error"] = {
+                        "operator_cutoff":"The demo reached its emergency spending cutoff. This request was not sent to the provider. Generation is paused; contact the operator to restore judging access.",
+                        "queue_busy":"Other generation requests are using the bounded demo queue. This request was not sent to the provider. Try again shortly.",
+                        "not_configured":"The operator has not configured the inference provider. Contact the operator; this request was not sent.",
+                    }.get(error.reason,"The provider rejected this request before completion. No automatic retry was made. Check model access, credentials, or rate limits before starting another request.")
                 self.store.put_job(job,release=not uncertain)
                 if uncertain:
-                    self.store.usage(job_id,job["stage"],MODEL,UsageCounts(0,0),0,"uncertain")
+                    self.store.usage(job_id,job["stage"],metadata["model"],UsageCounts(0,0),0,"uncertain")
                 course = self.store.get("courses",job["course_id"])
                 course["status"] = "error"
                 self.store.put_course(course)
