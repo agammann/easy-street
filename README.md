@@ -8,7 +8,7 @@ Turn reading you already have into an editable personal course. Upload a PDF, DO
 
 Easy Street is free, MIT-licensed software that runs on your computer. **Bring your own OpenAI or Nebius Token Factory API key and pay the selected provider directly for live generation.** OpenAI remains the default for normal installations. The included offline demo needs no key.
 
-This branch adds NVIDIA Nemotron through Nebius and a separate private judging configuration. The published **v1.0.0 download remains the earlier OpenAI release**; the new integration is being prepared here and needs an approved live Nebius check before a new release. Local tests and container checks are distinct from a deployed judging service. See the [hackathon plan](docs/hackathon/IMPLEMENTATION_PLAN.md), [change record](docs/hackathon/CONTEST_CHANGES.md), and [approval-dependent operations](docs/hackathon/COSTS_AND_OPERATIONS.md).
+The public [hackathon branch](https://github.com/agammann/easy-street/tree/hackathon/nebius-nemotron-2026) adds NVIDIA Nemotron through Nebius and a separate private judging configuration; review is open in [draft pull request #1](https://github.com/agammann/easy-street/pull/1). It has not been merged or released. The published **v1.0.0 download remains the earlier OpenAI release**. A live Nebius check is still required before a new release. Local tests and container checks are distinct from a deployed judging service. See the [hackathon plan](docs/hackathon/IMPLEMENTATION_PLAN.md), [change record](docs/hackathon/CONTEST_CHANGES.md), and [approval-dependent operations](docs/hackathon/COSTS_AND_OPERATIONS.md).
 
 ## Features
 
@@ -71,7 +71,7 @@ python3.12 launch.py --configure
 
 The terminal prompt hides the OpenAI key and saves it in ignored `.env.local`. It also accepts a cumulative local budget in USD; Enter keeps an existing value.
 
-For **Nebius Token Factory** in this branch, use its separate masked helper after installing the source dependencies:
+For **Nebius Token Factory**, first follow [Build from source](#build-from-source), including `git switch hackathon/nebius-nemotron-2026` immediately after cloning. A fresh clone otherwise opens the earlier default branch; the v1.0.0 release ZIP does not contain the Nebius helper. From the hackathon source checkout with dependencies installed, use its separate masked helper:
 
 ```powershell
 # Windows
@@ -159,7 +159,7 @@ The Nebius × NVIDIA adaptation targets **Best Apps and Agents**. Its hosted ent
 
 The gateway creates separate temporary workspaces and caches for visitors, adds deletion and expiration cleanup, and meters all Nebius calls through a persistent operator ledger. Prepared limits include a 5 MiB upload, one readable chapter of at most 100,000 characters/1,000 passages, up to three modules and three of each assessment, a $0.50 session allowance, and two concurrent provider calls. Hosted PDF parsing also bounds stream expansion and page-tree work; larger documents belong in a normal local installation. The one-click **Generate sample with Nebius** action sends the original licensed chapter through the real provider path when access and approved funding are configured. **Try the sample chapter** opens the extraction/outline workflow for manual configuration. The separate **Offline demo** remains prewritten and clearly labeled.
 
-This is prepared deployment code, **not a claim that a hosted judging service or live Nebius test is ready**. The owner approved Fly hosting and a **$15 total budget through December 15** ($8 hosting, $3 aggregate inference including development, $4 contingency), with deployment conditional on final checks and a passing live Nebius test. Up to $1 of that inference envelope is approved for the live acceptance test; secure key configuration and measured results remain pending. The checked-in generation allowance stays zero until those conditions pass. Free Better Stack email monitoring and labeled test alerts to the verified account email are approved; monitoring is not configured and delivery is untested. Credentials, account agreements, and payment setup remain owner-controlled private steps. Public source/video changes, new agreement acceptance, and final entry submission remain unapproved. An emergency cutoff pauses live generation and needs operator intervention during judging; it is not an uptime guarantee.
+This is prepared deployment code, **not a claim that a hosted judging service or live Nebius test is ready**. The owner confirmed Fly hosting and a **$15 total budget through December 15** ($8 hosting, $3 aggregate inference including development, $4 contingency), with deployment conditional on final checks and a passing live Nebius test. Up to $1 of that inference envelope is approved for the live acceptance test; secure key configuration and measured results remain pending. The checked-in generation allowance stays zero until those conditions pass. Free Better Stack email monitoring and labeled test alerts to the verified account email are approved; monitoring is not configured and delivery is untested. Credentials, account agreements, and payment setup remain owner-controlled private steps. Branch publication and the draft pull request are approved and complete; merge, a new release, video publication, new agreement acceptance, and final entry submission remain unapproved. An emergency cutoff pauses live generation and needs operator intervention during judging; it is not an uptime guarantee.
 
 Start with the [architecture](docs/hackathon/ARCHITECTURE.md), [costs and operations](docs/hackathon/COSTS_AND_OPERATIONS.md), [judge access guide](docs/hackathon/JUDGE_ACCESS.md), and [rules checklist](docs/hackathon/ELIGIBILITY.md). The [Fly proposal](deploy/fly.toml), [Render alternative](deploy/render.yaml), [Devpost draft](docs/hackathon/DEVPOST_DRAFT.md), [video script](docs/hackathon/VIDEO_SCRIPT.md), and [license review](docs/hackathon/LICENSE_REVIEW.md) are reviewable local preparation. Do not expose a normal local workspace by changing its bind address.
 
@@ -167,11 +167,12 @@ Start with the [architecture](docs/hackathon/ARCHITECTURE.md), [costs and operat
 
 Developers need Git, Python 3.12, Node.js 22.12 or newer, and pnpm 10. Release ZIP users do not need Node.js.
 
-The clone commands below start from the public default branch. The new Nebius/judging files currently exist in the local `hackathon/nebius-nemotron-2026` checkout and are not included in v1.0.0. Work from that existing checkout for this adaptation. After its publication is approved and completed, select it with `git switch hackathon/nebius-nemotron-2026` after cloning. Until then, a fresh public clone provides the earlier OpenAI application.
+The clone commands below explicitly select the public `hackathon/nebius-nemotron-2026` branch. This is required for Nebius/judging setup: the default branch and v1.0.0 still provide the earlier OpenAI application. The adaptation is under review in [draft PR #1](https://github.com/agammann/easy-street/pull/1). See the [verification report](docs/hackathon/VERIFICATION.md) and [current checks](https://github.com/agammann/easy-street/pull/1/checks) for test, packaging, and live-integration status.
 
 ```powershell
 git clone https://github.com/agammann/easy-street.git
 Set-Location easy-street
+git switch hackathon/nebius-nemotron-2026
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r backend/requirements-lock.txt
 npm.cmd install --global pnpm@10
@@ -185,6 +186,7 @@ Set-Location ..
 ```sh
 git clone https://github.com/agammann/easy-street.git
 cd easy-street
+git switch hackathon/nebius-nemotron-2026
 python3 -m venv .venv
 .venv/bin/python -m pip install -r backend/requirements-lock.txt
 npm install --global pnpm@10

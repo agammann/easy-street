@@ -22,6 +22,6 @@ Use only the original garden chapter and application UI. Do not record secret-ma
 - Keep more than one minute of actual application interaction on screen. Record desktop interaction at readable text size; show a brief mobile view only if it was tested and helps the story.
 - If evidence is insufficient or a reviewer misses a claim, show the honest review state or a manual correction. Do not claim perfect source grounding or guaranteed correctness.
 - Verify every shown feature, button label, provider/model, access instruction, and link against the final tested revision. The exact model name must match the deployed runtime.
-- Inspect the entire recording for accidental secrets or personal data before approval. The owner must approve video publication and public repository changes. Upload to the approved public YouTube destination only after that approval.
+- Inspect the entire recording for accidental secrets or personal data before approval. The source branch and draft PR are public with approval; merge and a new release remain unapproved. The owner must approve video publication. Upload to the approved public YouTube destination only after that approval.
 
 The [official rules](https://nebiusglobalaihackathon.devpost.com/rules) specify the public YouTube demonstration format. No recording, upload, or publication is performed by this script.

@@ -43,4 +43,4 @@ Use actual application footage, the original sample, and the project's own text.
 - [ ] Retain all notices in any built source/release distribution.
 - [ ] Verify the sample's TXT/PDF/DOCX files derive from the same original project text.
 - [ ] Review all screenshots, video frames, README examples, and exported demonstration files for third-party/private content and keys.
-- [ ] Obtain the owner's publication and agreement approvals; do not make personal ownership attestations on their behalf.
+- [ ] Obtain the owner's remaining release/video-publication and agreement approvals; branch publication/draft PR are already approved and complete. Do not make personal ownership attestations on their behalf.

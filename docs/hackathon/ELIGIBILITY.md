@@ -6,12 +6,12 @@ Checked October 16, 2026 against the [Official Rules](https://nebiusglobalaihack
 
 | Item | Verified requirement | Easy Street evidence or remaining gate |
 | --- | --- | --- |
-| Submission | August 26, 2026, 9 a.m. Pacific through **October 30, 2026, 10 a.m. PDT** | Freeze a tested revision and obtain publication/submission approval before the deadline. |
+| Submission | August 26, 2026, 9 a.m. Pacific through **October 30, 2026, 10 a.m. PDT** | Branch publication/draft PR approved and complete; final entry and video still require approval before the deadline. |
 | Judging | December 1, 9 a.m. through **December 15, 2026, noon PST** | Approved host, funding, access, and tested alert delivery remain deployment gates. |
 | Track | Best Apps and Agents | Nemotron must perform useful course work through Token Factory. A mocked response or provider selector alone is insufficient. |
 | Platform | Nebius runtime use and an NVIDIA open model | The FAQ permits other hosting for the web application. Record an approved live inference result. |
 | Existing work | Significant updates during the contest window | [CONTEST_CHANGES.md](CONTEST_CHANGES.md) distinguishes the released baseline from adaptation changes. |
-| Source | Public open-source repository, setup, necessary assets | Existing MIT repository; hackathon branch publication requires approval. |
+| Source | Public open-source repository, setup, necessary assets | MIT [hackathon branch](https://github.com/agammann/easy-street/tree/hackathon/nebius-nemotron-2026) published at [6524760](https://github.com/agammann/easy-street/commit/6524760b228a80088e0e3e784d907ff30f992e43), with [draft PR #1](https://github.com/agammann/easy-street/pull/1); not merged/released. |
 | Entry | English description, track, tool feedback, working demo/test build | [DEVPOST_DRAFT.md](DEVPOST_DRAFT.md); final URLs and live evidence pending. |
 | Video | Public YouTube demonstration under three minutes | [VIDEO_SCRIPT.md](VIDEO_SCRIPT.md); record real functioning software after validation. |
 | Testing | Free judge access until judging ends; private sites supply credentials | Add credentials only to the private testing field. No provider key is a judge credential. |
@@ -36,7 +36,7 @@ Token Factory billing describes automatic card charging at the configured thresh
 
 ## Release decision
 
-As of October 16, the owner approved up to $1 total for a small Nebius live test and opening masked local key setup. Credentials, actual test execution, and measurement remain pending. The owner approved Fly hosting and $15 total through December 15 ($8 hosting, $3 aggregate inference including development, $4 contingency), with deployment conditional on final checks and a passing live Nebius test. Runtime generation remains at zero until those conditions pass. Free Better Stack email monitoring and labeled test alerts to the verified account email are approved, but no monitor is configured and delivery is untested. Credentials, new account agreements, and payment setup remain owner-controlled. Publication and entry submission remain unapproved.
+As of October 16, the owner approved up to $1 total for a small Nebius live test and opening masked local key setup. Credentials, actual test execution, and measurement remain pending. The owner confirmed Fly hosting and $15 total through December 15 ($8 hosting, $3 aggregate inference including development, $4 contingency), with deployment conditional on final checks and a passing live Nebius test. Runtime generation remains at zero until those conditions pass. Free Better Stack email monitoring and labeled test alerts to the verified account email are approved, but no monitor is configured and delivery is untested. Credentials, new account agreements, and payment setup remain owner-controlled. Branch publication and draft PR creation are approved and complete. Merge, a new release, video publication, and entry submission remain unapproved.
 
 - [x] Both providers pass routine mocked regressions, including evidence and cost failures; see [verification](VERIFICATION.md).
 - [ ] Small approved Nebius test records exact model, tokens, cost, latency, and reviewed output.
@@ -47,7 +47,8 @@ As of October 16, the owner approved up to $1 total for a small Nebius live test
 - [ ] Final private access, secure credentials, and owner-controlled account setup are complete.
 - [ ] Actual deployment and alert delivery are verified; retention cleanup is observed.
 - [ ] Credits and paid fallback cover the period through December 15; cutoff recovery has an owner.
-- [ ] Publish the tested branch/revision and video only after approval.
+- [x] Publish the approved source branch/revision and open its draft PR; see [verification](VERIFICATION.md) for the packaging correction and revision-specific checks.
+- [ ] Publish the video only after recording, review, and approval; merge/new release remain separate approvals.
 - [ ] The owner confirms attestations and explicitly authorizes terms acceptance and final submission.
 
 An emergency spending cutoff interrupts live judging. It requires operator intervention to replenish approved funds, revise the approved allowance, or repair abuse. A static recording and cached result do not substitute for an available working judging deployment.

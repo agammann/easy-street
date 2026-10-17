@@ -1,6 +1,6 @@
 # Easy Street — Devpost draft
 
-Local draft only. Replace the verification fields below with measured results before publication. Do not claim that the hosted or real Nebius paths have passed until the evidence exists. No Devpost entry was modified or submitted by this preparation.
+Entry draft for review, included on the public hackathon branch. It has not been submitted to Devpost. Replace the remaining verification fields with measured results before using this as the final entry. Do not claim that the hosted or real Nebius paths have passed until the evidence exists. No Devpost entry was modified or submitted by this preparation.
 
 ## Project name
 
@@ -24,7 +24,7 @@ Learner HTML, separate answer-key HTML, and JSON backup exports make the work us
 
 We extended the released Easy Street repository rather than starting a new application. React and TypeScript provide the editor; FastAPI and SQLite handle extraction, course state, versions, jobs, evidence, caching, and usage reservations.
 
-The contest integration adds Nebius Token Factory as a backend provider while preserving OpenAI support. Its configured model is **`nvidia/nemotron-3-super-120b-a12b`**. **Before publication, verify that identifier against the approved live run and link its record here.** Token Factory is wired to the actual generation and support-review calls. No web search or external retrieval contributes educational claims. Source passages and outline text are treated as untrusted data, including instructions embedded in a document.
+The contest integration adds Nebius Token Factory as a backend provider while preserving OpenAI support. Its configured model is **`nvidia/nemotron-3-super-120b-a12b`**. **Before entry submission, verify that identifier against the approved live run and link its record here.** Token Factory is wired to the actual generation and support-review calls. No web search or external retrieval contributes educational claims. Source passages and outline text are treated as untrusted data, including instructions embedded in a document.
 
 The hosted demo keeps the operator's Nebius key in the server's secret environment. Browsers receive course results and non-secret configuration, never provider credentials. Bounded uploads, module/token limits, duplicate-request handling, concurrency control, and persistent usage accounting constrain operator exposure.
 
@@ -63,7 +63,7 @@ Easy Street v1.0.0 existed before this hackathon adaptation. Its repository hist
 
 | Field | Value before submission |
 | --- | --- |
-| Tested public source revision | Pending publication approval |
+| Tested public source revision | [6524760b228a80088e0e3e784d907ff30f992e43](https://github.com/agammann/easy-street/commit/6524760b228a80088e0e3e784d907ff30f992e43), published on the [hackathon branch](https://github.com/agammann/easy-street/tree/hackathon/nebius-nemotron-2026); [draft PR #1](https://github.com/agammann/easy-street/pull/1) open, not merged/released. Local evidence recorded; remote CI running, result pending. |
 | Working judging URL | Fly/$15 approved through December 15; deployment conditional on final checks and a passing live Nebius test, not yet performed |
 | Public YouTube URL | Pending recording and publication approval |
 | Exact Nemotron model and approved live evidence | Up to $1 test approved; secure key configuration and real run pending |
