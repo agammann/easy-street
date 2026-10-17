@@ -1,7 +1,9 @@
 name: Retire judging deployment
 on:
   schedule:
-    - cron: '37 * * * *'
+    # More than one opportunity per hour tolerates dropped schedule events.
+    # The independent two-hour missed-check-in alert remains unchanged.
+    - cron: '7,22,37,52 * * * *'
   workflow_dispatch:
     inputs:
       rehearsal_backup:
