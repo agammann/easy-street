@@ -1,0 +1,69 @@
+# Proposal only: no Fly account, service, payment, or deployment is configured.
+# Replace both placeholders only after host/budget/deployment approval.
+# A 512 MiB acceptance test and mounted-volume UID 10001 write test are gates.
+# This file does not impose a maximum Machine count. Approved deployment must
+# use --ha=false --local-only, then verify exactly one Machine and one volume.
+app = "REPLACE_WITH_APPROVED_APP"
+primary_region = "iad"
+kill_signal = "SIGTERM"
+kill_timeout = 30
+
+[build]
+  dockerfile = "deploy/Dockerfile"
+
+[deploy]
+  strategy = "rolling"
+  max_unavailable = 1
+
+[env]
+  PORT = "8000"
+  EASY_STREET_DEMO_ORIGIN = "https://approved-host.example"
+  EASY_STREET_DEMO_DATA_DIR = "/var/lib/easy-street"
+  EASY_STREET_DEMO_BUDGET_USD = "0"
+  EASY_STREET_DEMO_SESSION_BUDGET_USD = "0.50"
+  EASY_STREET_DEMO_ALLOW_HTTP = "0"
+  EASY_STREET_DEMO_RETENTION_HOURS = "24"
+  EASY_STREET_DEMO_MAX_SESSIONS = "100"
+  EASY_STREET_DEMO_MAX_CONCURRENT = "2"
+  EASY_STREET_DEMO_MAX_UPLOAD_MIB = "5"
+  EASY_STREET_DEMO_MAX_MODULES = "3"
+  EASY_STREET_DEMO_MAX_ASSIGNMENTS = "3"
+  EASY_STREET_DEMO_MAX_QUIZZES = "3"
+  EASY_STREET_DEMO_EXPIRES_AT = "2026-12-16T08:00:00+00:00"
+  # NEBIUS_API_KEY, EASY_STREET_JUDGE_PASSWORD_HASH, and
+  # EASY_STREET_OPERATOR_TOKEN belong in runtime secrets, never this file.
+  # NEBIUS_CREDIT_EXPIRES_AT is optional account-verified metadata.
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  # With autostop off this is ignored; it is not a Machine-count ceiling.
+  min_machines_running = 1
+
+[[http_service.checks]]
+  grace_period = "30s"
+  interval = "30s"
+  timeout = "5s"
+  method = "GET"
+  path = "/health/ready"
+  [http_service.checks.headers]
+    Host = "127.0.0.1"
+
+[[mounts]]
+  source = "easy_street_judging_data"
+  destination = "/var/lib/easy-street"
+  initial_size = "1gb"
+  snapshot_retention = 5
+  scheduled_snapshots = true
+  # No automatic growth. Backups can retain deleted uploads for five days;
+  # disclose and verify this during deployment, then clean them up at closure.
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory = "512mb"
+
+[[restart]]
+  policy = "always"

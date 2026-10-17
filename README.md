@@ -6,7 +6,9 @@ Turn reading you already have into an editable personal course. Upload a PDF, DO
 
 ![An open book becomes a road through colorful hills](frontend/public/learning-road.png)
 
-Easy Street is free, MIT-licensed software that runs on your computer. **Bring your own OpenAI API key and pay OpenAI directly for live generation.** There is no bundled key, shared developer billing account, subscription, or required hosted service. The included offline demo needs no key.
+Easy Street is free, MIT-licensed software that runs on your computer. **Bring your own OpenAI or Nebius Token Factory API key and pay the selected provider directly for live generation.** OpenAI remains the default for normal installations. The included offline demo needs no key.
+
+This branch adds NVIDIA Nemotron through Nebius and a separate private judging configuration. The published **v1.0.0 download remains the earlier OpenAI release**; the new integration is being prepared here and needs an approved live Nebius check before a new release. Local tests and container checks are distinct from a deployed judging service. See the [hackathon plan](docs/hackathon/IMPLEMENTATION_PLAN.md), [change record](docs/hackathon/CONTEST_CHANGES.md), and [approval-dependent operations](docs/hackathon/COSTS_AND_OPERATIONS.md).
 
 ## Features
 
@@ -16,8 +18,9 @@ Easy Street is free, MIT-licensed software that runs on your computer. **Bring y
 - Source inspection, section editing/reordering/regeneration, version history and restore, course archive/unarchive, and JSON course import.
 - Printable learner HTML, a separate answer key, and a structured JSON backup.
 - Local PDF, DOCX, and UTF-8 TXT extraction; optional explicit local OCR for selected PDF pages.
+- Per-course OpenAI or Nebius selection in local installations. The Nebius adapter uses NVIDIA Nemotron for generation and a separate source-support review.
 
-Source checks and a separate model review can miss unsupported claims. Read the source and review generated content before relying on it or sharing it. Objectives, activities, schedules, and rubrics are proposals, not textbook policies or accreditation. See [verification results and limits](COMPLETION_REPORT.md).
+Source checks and a separate model review can miss unsupported claims. Read the source and review generated content before relying on it or sharing it. Objectives, activities, schedules, and rubrics are proposals, not textbook policies or accreditation. See [hackathon branch verification](docs/hackathon/VERIFICATION.md) and [the earlier release report](COMPLETION_REPORT.md).
 
 ## Download and start
 
@@ -52,9 +55,9 @@ If `python3.12` is unavailable but `python3 --version` reports 3.12, use `python
 
 The demo uses prewritten content for the included original garden chapter. It demonstrates the workflow, not live model quality. Your own material can be uploaded and outlined locally without a key; provider generation needs your key.
 
-### Configure your own key and budget
+### Configure your own provider and budget
 
-Stop the app and run this from its folder:
+Stop the app before changing configuration. For **OpenAI**, run this from the app folder:
 
 ```powershell
 # Windows
@@ -66,11 +69,29 @@ py -3.12 launch.py --configure
 python3.12 launch.py --configure
 ```
 
-The terminal prompt hides the key as you type and saves it in the ignored `.env.local` file. Enter your own key and a cumulative local budget in USD; Enter keeps an existing value. Restart and check **Settings** for the configured-key indicator and allowance.
+The terminal prompt hides the OpenAI key and saves it in ignored `.env.local`. It also accepts a cumulative local budget in USD; Enter keeps an existing value.
 
-In Codex, its secure OpenAI key setup flow is also supported. Advanced users can configure `OPENAI_API_KEY` and `EASY_STREET_BUDGET_USD` in the backend environment or edit `.env.local` with a trusted editor. `.env.example` has no key; copy it only if `.env.local` does not already exist.
+For **Nebius Token Factory** in this branch, use its separate masked helper after installing the source dependencies:
 
-Never paste keys into chat, courses, the browser interface, issues, or source code. There is no browser key-entry form. Keys are not stored in SQLite, browser storage, or exports. Protect `.env.local` with your operating-system account and backup practices. The default allowance is **$1 per local database**, cumulative rather than per-course or daily.
+```powershell
+# Windows
+.\.venv\Scripts\python.exe scripts/configure_nebius.py
+```
+
+```sh
+# macOS / Linux
+.venv/bin/python scripts/configure_nebius.py
+```
+
+It saves only `NEBIUS_API_KEY` in ignored `.env.local`, preserves other settings, and makes no API request. It does not create an account, claim credits, add a payment method, or change the allowance. A Token Factory API key is separate from a Nebius cloud/IAM credential. Use an account authorized for the selected model. Follow the provider's [official setup documentation](https://docs.tokenfactory.nebius.com/quickstart); account/billing agreements are the account owner's decision.
+
+Restart the app and check **Settings** for each provider's configured-key indicator and pricing. Choose a provider in **Generation mode** when creating a course. Existing courses keep their provider, and an unavailable provider does not silently switch to another one. To make Nebius the initial choice for new local courses, set the non-secret `EASY_STREET_PROVIDER=nebius` in `.env.local`; omit it or set `openai` to keep OpenAI as the default. The original sample initially offers **Offline demo** locally.
+
+The default cumulative allowance is **$1 for the local database across both providers**, rather than per course, provider, or day. Change `EASY_STREET_BUDGET_USD` deliberately in the backend environment or private `.env.local` using a trusted editor. The OpenAI configuration helper can also change this allowance while leaving its key prompt blank. A larger allowance permits more spending; it does not purchase provider credits or impose a provider billing cap.
+
+In Codex, its secure OpenAI key setup flow is also supported. Advanced users may supply `OPENAI_API_KEY`, `NEBIUS_API_KEY`, and the non-secret settings directly in the backend environment. The local entry point loads `.env.local`, then `.env`, without replacing existing process environment values. [.env.example](.env.example) contains no credentials; copy it only when `.env.local` does not already exist.
+
+Never paste provider keys into chat, courses, the browser interface, issues, or source code. There is no browser provider-key form. Keys are not stored in SQLite, browser storage, or exports. Protect `.env.local` with your operating-system account and backup practices. The setup helpers save configuration without generating a course or spending inference credits.
 
 ## Planning and recovery
 
@@ -119,17 +140,34 @@ Restart the app, choose up to five pages in the preview, and run local OCR. Chan
 
 ## Privacy and spending
 
-Original files, extraction, outlines, courses, versions, jobs, and usage stay local. Approving generation sends selected excerpts and course instructions to OpenAI; a separate support review receives the relevant source and generated content. Requests use `store=False`, and provider processing remains subject to its policies. Generation has no web search, outside retrieval, or execution tools. Uploaded text is treated as untrusted data.
+In a normal installation, original files, extraction, outlines, courses, versions, jobs, and usage stay local. Approving generation sends selected excerpts and course instructions to the course's chosen provider; a separate support review receives the relevant source and generated content. Both adapters request `store=False`, and provider processing remains subject to the account's applicable policies. That request option is not a contractual zero-retention guarantee. Generation has no web search, outside retrieval, or execution tools. Uploaded text, outlines, and existing generated sections are treated as untrusted data.
 
 The app checks counts, source identifiers, and exact quotations, then asks the provider to assess support. A valid quotation does not prove that every claim follows from it. Missing support and detected conflicts are flagged, but the reviewer is fallible. Human review remains necessary.
 
-Default model: `gpt-4.1-mini`. Pricing checked October 15, 2026: **$0.40/million input tokens, $0.10/million cached input tokens, $1.60/million output tokens**. See [official pricing](https://developers.openai.com/api/docs/models/gpt-4.1-mini). Estimates include generation and verification and conservatively use the full input rate. Recorded costs use provider-reported tokens and are estimates, not invoices.
+| Provider | Pinned model | Application pricing snapshot |
+| --- | --- | --- |
+| OpenAI, the local default | `gpt-4.1-mini` | October 15, 2026: $0.40/million input, $0.10/million cached input, $1.60/million output tokens |
+| Nebius Token Factory | `nvidia/nemotron-3-super-120b-a12b` | October 16, 2026: $0.30/million input, $0.90/million output tokens; no cached-token discount assumed |
 
-The app reserves estimated costs and checks the allowance before each call. Automatic SDK retries are disabled. **Local allowances are not provider-enforced billing caps.** The server binds to localhost and checks Host/Origin requests. This is a personal workspace without multi-user authentication; do not expose it to a public network.
+Sources: [OpenAI model pricing](https://developers.openai.com/api/docs/models/gpt-4.1-mini), [Token Factory catalog/pricing](https://tokenfactory.nebius.com/). Recheck availability and rates before enabling a provider. Estimates include generation and verification and conservatively use the full input rate. Recorded costs use provider-reported tokens and are estimates, not invoices. A malformed response can still consume tokens; known usage remains recorded.
+
+The app reserves estimated costs and checks the allowance before each call. Automatic SDK retries are disabled for both providers. **Local allowances are not provider-enforced billing caps.** An ambiguous outcome remains reserved instead of being silently repeated. The normal server binds to localhost and checks Host/Origin requests. It is a personal workspace without multi-user authentication; use the separate judging entry point for an approved hosted deployment.
+
+## Separate private judging configuration
+
+The Nebius × NVIDIA adaptation targets **Best Apps and Agents**. Its hosted entry point is `backend.judging_app:app`, separate from local `backend.app:app`. It never loads a developer's local environment files. An operator-funded Nebius key belongs only in the approved host's runtime secret manager or environment. Judges use a private application access code and never need a provider key or payment.
+
+The gateway creates separate temporary workspaces and caches for visitors, adds deletion and expiration cleanup, and meters all Nebius calls through a persistent operator ledger. Prepared limits include a 5 MiB upload, one readable chapter of at most 100,000 characters/1,000 passages, up to three modules and three of each assessment, a $0.50 session allowance, and two concurrent provider calls. Hosted PDF parsing also bounds stream expansion and page-tree work; larger documents belong in a normal local installation. The one-click **Generate sample with Nebius** action sends the original licensed chapter through the real provider path when access and approved funding are configured. **Try the sample chapter** opens the extraction/outline workflow for manual configuration. The separate **Offline demo** remains prewritten and clearly labeled.
+
+This is prepared deployment code, **not a claim that a hosted judging service or live Nebius test is ready**. The owner approved Fly hosting and a **$15 total budget through December 15** ($8 hosting, $3 aggregate inference including development, $4 contingency), with deployment conditional on final checks and a passing live Nebius test. Up to $1 of that inference envelope is approved for the live acceptance test; secure key configuration and measured results remain pending. The checked-in generation allowance stays zero until those conditions pass. Free Better Stack email monitoring and labeled test alerts to the verified account email are approved; monitoring is not configured and delivery is untested. Credentials, account agreements, and payment setup remain owner-controlled private steps. Public source/video changes, new agreement acceptance, and final entry submission remain unapproved. An emergency cutoff pauses live generation and needs operator intervention during judging; it is not an uptime guarantee.
+
+Start with the [architecture](docs/hackathon/ARCHITECTURE.md), [costs and operations](docs/hackathon/COSTS_AND_OPERATIONS.md), [judge access guide](docs/hackathon/JUDGE_ACCESS.md), and [rules checklist](docs/hackathon/ELIGIBILITY.md). The [Fly proposal](deploy/fly.toml), [Render alternative](deploy/render.yaml), [Devpost draft](docs/hackathon/DEVPOST_DRAFT.md), [video script](docs/hackathon/VIDEO_SCRIPT.md), and [license review](docs/hackathon/LICENSE_REVIEW.md) are reviewable local preparation. Do not expose a normal local workspace by changing its bind address.
 
 ## Build from source
 
 Developers need Git, Python 3.12, Node.js 22.12 or newer, and pnpm 10. Release ZIP users do not need Node.js.
+
+The clone commands below start from the public default branch. The new Nebius/judging files currently exist in the local `hackathon/nebius-nemotron-2026` checkout and are not included in v1.0.0. Work from that existing checkout for this adaptation. After its publication is approved and completed, select it with `git switch hackathon/nebius-nemotron-2026` after cloning. Until then, a fresh public clone provides the earlier OpenAI application.
 
 ```powershell
 git clone https://github.com/agammann/easy-street.git
@@ -175,7 +213,7 @@ On macOS/Linux use `.venv/bin/python`, `cd`, and `pnpm` in equivalent commands. 
 
 [GitHub Actions](https://github.com/agammann/easy-street/actions) runs Ubuntu, Apple Silicon macOS 15, and Intel macOS 15 separately. It packages the download and checks fresh installation from the ZIP without building the frontend. Ubuntu installs optional tools for a real OCR test. Run it from any computer using **Actions → Check Easy Street → Run workflow**.
 
-See [COMPLETION_REPORT.md](COMPLETION_REPORT.md) for actual results. Hosted macOS checks do not establish interactive Safari or desktop-installer behavior. API details are in [backend/API_CONTRACT.md](backend/API_CONTRACT.md).
+See [COMPLETION_REPORT.md](COMPLETION_REPORT.md) for the published v1.0.0 results and [the contest change record](docs/hackathon/CONTEST_CHANGES.md) for this branch's evidence. Routine new provider and isolation tests use mocks; a successful mock or zero-funded container test does not establish live Nebius generation. Hosted macOS checks do not establish interactive Safari or desktop-installer behavior. API details are in [backend/API_CONTRACT.md](backend/API_CONTRACT.md).
 
 ## Troubleshooting and limits
 
@@ -183,13 +221,13 @@ See [COMPLETION_REPORT.md](COMPLETION_REPORT.md) for actual results. Hosted macO
 - **Missing frontend:** download the release asset `easy-street-1.0.0.zip`, rather than GitHub's automatic source ZIP, or follow source build instructions.
 - **Port 8000 occupied:** stop the other backend with Ctrl+C; use only one server per data directory.
 - **Dependency setup failed:** check internet access and Python version, then rerun. Keep lockfiles intact.
-- **No configured key:** run the private configuration command, check provider access/billing, and restart. Offline demo remains available.
+- **No configured key:** run the masked helper for the selected provider, check provider access/billing, and restart. Settings shows each provider separately. Offline demo remains available.
 - **Budget exhausted:** inspect Settings and uncertain reservations before increasing the limit.
 - **Unreadable source:** use a clearer file or explicit local OCR. Encrypted PDFs, legacy `.doc`, macros, and embedded DOCX objects are unsupported.
 - **Review needed:** inspect source evidence and correct unsupported wording. A different source file needs a new course.
 - **Cross-origin blocked:** use documented localhost URLs and ports; do not disable protections for embedding elsewhere.
 
-Limits: **15 MiB uploads, 100 PDF pages, 250,000 extracted characters**, additional DOCX archive/XML expansion limits, and five selected OCR pages per upload. Hosted accounts, LMS integration, automatic grading, additional providers, and unrestricted full-book generation are outside this release.
+Normal local limits: **15 MiB uploads, 100 PDF pages, 250,000 extracted characters**, additional DOCX archive/XML expansion limits, and five selected OCR pages per upload. The judging configuration has smaller temporary-workspace limits described above. General hosted accounts, LMS integration, automatic grading, providers beyond the implemented OpenAI/Nebius adapters, and unrestricted full-book generation remain outside this branch's scope.
 
 Use material you have permission to process. Learner HTML is the sharing format when answers must remain separate; JSON and answer keys include answers. Exports omit complete source documents but may include short quotations.
 

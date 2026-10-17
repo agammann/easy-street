@@ -53,19 +53,21 @@ def public_job(job):
     return {k:v for k,v in job.items() if k not in ("generated","verification","module_results")}
 
 
-def create_app(data_dir: Path | None = None, provider=None, budget_limit: float | None = None):
+def create_app(data_dir: Path | None = None, provider=None, budget_limit: float | None = None,
+               *, providers=None, allowed_origins=None, allowed_hosts=None, hosting_mode="local"):
+    origins = ORIGINS if allowed_origins is None else allowed_origins
     service = Service(Path(data_dir or os.environ.get("EASY_STREET_DATA_DIR",ROOT / "data")),
-                      float(budget_limit if budget_limit is not None else os.environ.get("EASY_STREET_BUDGET_USD","1.00")),provider)
+                      float(budget_limit if budget_limit is not None else os.environ.get("EASY_STREET_BUDGET_USD","1.00")),provider,providers=providers)
     app = FastAPI(title="Easy Street",version="1.0.0",docs_url="/api/docs",redoc_url=None)
     app.state.service = service
-    app.add_middleware(CORSMiddleware,allow_origins=ORIGINS,allow_credentials=False,allow_methods=["GET","POST","PATCH"],allow_headers=["Content-Type"])
-    app.add_middleware(TrustedHostMiddleware,allowed_hosts=["localhost","127.0.0.1","[::1]"])
+    app.add_middleware(CORSMiddleware,allow_origins=origins,allow_credentials=False,allow_methods=["GET","POST","PATCH"],allow_headers=["Content-Type","X-Easy-Street-CSRF"])
+    app.add_middleware(TrustedHostMiddleware,allowed_hosts=allowed_hosts or ["localhost","127.0.0.1","[::1]"])
     app.add_middleware(BoundedRequestBody)
 
     @app.middleware("http")
     async def protect_local(request: Request, call_next):
         origin = request.headers.get("origin")
-        if origin and origin not in ORIGINS:
+        if origin and origin not in origins:
             return JSONResponse({"detail":"This local application does not accept requests from that origin."},status_code=403)
         # Opening the app from another page can be a cross-site top-level navigation.
         # Only the static entry document may load that way; API requests remain blocked.
@@ -129,11 +131,27 @@ def create_app(data_dir: Path | None = None, provider=None, budget_limit: float 
     @app.get("/api/config")
     def config():
         from .ocr import ocr_capability
-        return {"provider":"openai","model":MODEL,"key_configured":service.key_configured,"pricing":PRICING,"budget":service.store.budget(),
+        selected = os.environ.get("EASY_STREET_PROVIDER","openai") if hosting_mode == "local" else "nebius"
+        if selected not in ("openai","nebius"):
+            selected = "openai"
+        metadata = service.provider_metadata(selected)
+        return {"provider":selected,"model":metadata["model"],"key_configured":metadata["key_configured"],"pricing":metadata["pricing"],"budget":service.store.budget(),
+            "providers":[service.provider_metadata(name) for name in ("openai","nebius") if hosting_mode == "local" or name == "nebius"],
+            "hosting_mode":hosting_mode,
+            "demo":getattr(app.state,"demo_info",None),
             "milestone":{"modules":6,"assignments":6,"quizzes":6,"max_questions":5},
             "limits":{"modules":6,"assignments":6,"quizzes":6,"max_questions":5,"assignments_per_module":2,"quizzes_per_module":2,"source_chars_per_module":24000},
             "ocr":ocr_capability(),
-            "privacy_notice":"Original files and courses stay on this computer. OpenAI mode sends the selected excerpts to OpenAI for generation and a separate evidence review. Bring your own API key and pay OpenAI directly; the software is free. Use material you have permission to process. Application estimates are not a provider-enforced billing guarantee."}
+            "privacy_notice":("Original files and courses stay on this computer. Generation sends selected excerpts to your chosen provider for generation and a separate evidence review. Bring your own API key and pay that provider directly; the software is free. Use material you have permission to process. Application estimates are not a provider-enforced billing guarantee." if hosting_mode == "local" else
+                "This private judging demo temporarily stores your documents and courses on the operator's server in an isolated visitor workspace. Selected excerpts go to Nebius for generation and a separate evidence review. The operator funds inference. Delete your workspace when finished; temporary data expires automatically. Do not upload sensitive or unlicensed material.")}
+
+    @app.get("/api/session")
+    def local_session():
+        return {"mode":"local","authenticated":True}
+
+    @app.get("/sample-license.txt")
+    def sample_license():
+        return FileResponse(ROOT / "backend" / "sample" / "LICENSE.txt",media_type="text/plain")
 
     @app.post("/api/documents")
     async def upload(file: UploadFile = File(...), ocr_pages: str | None = Form(default=None)):

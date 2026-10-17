@@ -45,7 +45,7 @@ class CourseInput(StrictModel):
     assignments: int = Field(default=1, ge=0, le=6)
     quizzes: int = Field(default=1, ge=0, le=6)
     questions_per_quiz: int = Field(default=3, ge=1, le=5)
-    mode: Literal["demo", "openai"] = "openai"
+    mode: Literal["demo", "openai", "nebius"] = "openai"
 
     @model_validator(mode="after")
     def bounded_distribution(self):

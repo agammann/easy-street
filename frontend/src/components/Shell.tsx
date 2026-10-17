@@ -1,9 +1,12 @@
 import { BookOpen, Folder, Settings, LockKeyhole } from 'lucide-react'
 import type { ReactNode } from 'react'
-import type { View } from '../types'
+import type { Config, View } from '../types'
+import { providerLabel } from '../providers'
 
 const navigation = [{ id: 'courses', label: 'My courses', icon: BookOpen }, { id: 'library', label: 'Source library', icon: Folder }, { id: 'settings', label: 'Settings', icon: Settings }] as const
-export function Shell({ view, onView, children, breadcrumb }: { view: View; onView: (view: View) => void; children: ReactNode; breadcrumb: string }) {
+export function Shell({ view, onView, children, breadcrumb, config }: { view: View; onView: (view: View) => void; children: ReactNode; breadcrumb: string; config?: Config | null }) {
+  const judging = config?.hosting_mode === 'judging'
+  const providers = config?.providers?.map(item => providerLabel(item.name)).join(' or ') || providerLabel(config?.provider ?? 'openai')
   return <div className="app-shell">
     <a className="skip-link" href="#main">Skip to content</a>
     <header className="site-header">
@@ -11,6 +14,6 @@ export function Shell({ view, onView, children, breadcrumb }: { view: View; onVi
       <nav aria-label="Main navigation">{navigation.map(({ id, label }) => <button key={id} className={`nav-link ${view === id ? 'active' : ''}`} onClick={() => onView(id)} aria-current={view === id ? 'page' : undefined}>{label}</button>)}</nav>
     </header>
     <main id="main" className="main-shell" aria-label={breadcrumb}>{children}</main>
-    <footer className="site-footer"><span><LockKeyhole size={16}/>Your files stay on your device. Only selected excerpts go to OpenAI when you choose to generate.</span><span>Free software. Your API key.</span><span className="workspace"><span className="status-dot"/>Local workspace</span></footer>
+    <footer className="site-footer"><span><LockKeyhole size={16}/>{!config ? 'Only approved source excerpts are sent to your selected provider during generation.' : judging ? 'Your files stay in an isolated temporary server workspace. Only approved excerpts go to Nebius.' : `Your files stay on your device. Only selected excerpts go to ${providers} when you choose to generate.`}</span><span>{!config ? 'Free and open source.' : judging ? 'Operator-funded judging demo.' : 'Free software. Your API key.'}</span><span className="workspace"><span className="status-dot"/>{!config ? 'Opening workspace…' : judging ? 'Temporary workspace' : 'Local workspace'}</span></footer>
   </div>
 }
