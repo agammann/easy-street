@@ -26,6 +26,10 @@ class DemoLedger:
                     reserved REAL NOT NULL, actual REAL NOT NULL DEFAULT 0,
                     input_tokens INTEGER NOT NULL DEFAULT 0, output_tokens INTEGER NOT NULL DEFAULT 0,
                     created_at TEXT NOT NULL);
+                CREATE TABLE IF NOT EXISTS provider_health(
+                    stage TEXT PRIMARY KEY CHECK(stage IN ('generation','verification')),
+                    state TEXT NOT NULL CHECK(state IN ('healthy','failing')),
+                    updated_at TEXT NOT NULL);
             """)
             # A restarted process cannot know whether an in-flight request was billed.
             db.execute("UPDATE calls SET state='uncertain' WHERE state='in_flight'")
@@ -65,10 +69,16 @@ class DemoLedger:
                        (call_id,session_id,model,stage,"in_flight",maximum,datetime.now(timezone.utc).isoformat()))
         return call_id
 
-    def finish(self, call_id, usage=None, pricing=None, rejected=False):
+    def provider_health(self):
+        # At most two rows; no provider exception, prompt, response, or credential.
+        with self.connect() as db:
+            return {row["stage"]:{"state":row["state"],"updated_at":row["updated_at"]}
+                    for row in db.execute("SELECT stage,state,updated_at FROM provider_health ORDER BY stage")}
+
+    def finish(self, call_id, usage=None, pricing=None, rejected=False, provider_healthy=None):
         with self.connect() as db:
             db.execute("BEGIN IMMEDIATE")
-            row = db.execute("SELECT state,reserved FROM calls WHERE id=?",(call_id,)).fetchone()
+            row = db.execute("SELECT state,reserved,stage FROM calls WHERE id=?",(call_id,)).fetchone()
             if not row or row["state"] != "in_flight":
                 return
             if usage is not None:
@@ -80,6 +90,10 @@ class DemoLedger:
                 db.execute("UPDATE calls SET state='rejected',reserved=0 WHERE id=?",(call_id,))
             else:
                 db.execute("UPDATE calls SET state='uncertain' WHERE id=?",(call_id,))
+            if provider_healthy is not None:
+                db.execute("INSERT INTO provider_health(stage,state,updated_at) VALUES(?,?,?) "
+                           "ON CONFLICT(stage) DO UPDATE SET state=excluded.state,updated_at=excluded.updated_at",
+                           (row["stage"],"healthy" if provider_healthy else "failing",datetime.now(timezone.utc).isoformat()))
 
 
 class MeteredProvider:
@@ -107,9 +121,9 @@ class MeteredProvider:
             try:
                 result, usage = method(payload)
             except Exception as exc:
-                self.ledger.finish(call_id,getattr(exc,"usage",None),self.pricing,isinstance(exc,ProviderCallRejected))
+                self.ledger.finish(call_id,getattr(exc,"usage",None),self.pricing,isinstance(exc,ProviderCallRejected),provider_healthy=False)
                 raise
-            self.ledger.finish(call_id,usage,self.pricing)
+            self.ledger.finish(call_id,usage,self.pricing,provider_healthy=True)
             return result, usage
         finally:
             self.ledger.slots.release()

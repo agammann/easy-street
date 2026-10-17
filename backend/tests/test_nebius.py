@@ -7,6 +7,7 @@ import openai
 import pytest
 
 from backend.demo import demo_module
+from backend.demo_control import DemoLedger, MeteredProvider
 from backend.extraction import SAMPLE_PATH
 from backend.models import CourseInput, GenerateInput, Verification
 from backend.provider import (
@@ -82,6 +83,30 @@ def test_nebius_real_sdk_request_is_pinned_bounded_source_only_and_expands_origi
     assert usage == UsageCounts(100,40)
     assert "test-private-provider-canary" not in json.dumps(request["body"])
     assert "test-private-provider-canary" not in result.model_dump_json()
+
+
+@pytest.mark.parametrize("status",[401,402,429])
+def test_dispatched_http_failure_persists_sanitized_health_without_changing_billing_rules(tmp_path,transport_stub,status):
+    private="provider-health-secret-source-canary"
+    transport_stub["status"]=status
+    transport_stub["body"]={"error":{"message":private,"type":"fixture-error"}}
+    ledger=DemoLedger(tmp_path/"operator.sqlite3",5)
+    wrapped=MeteredProvider(NebiusProvider(api_key=private),ledger,"fixture-visitor")
+    with pytest.raises((ProviderCallRejected,openai.APIStatusError)):
+        wrapped.generate({"passages":[{"id":"p1","text":private}]})
+    assert len(transport_stub["calls"]) == 1
+    health=ledger.provider_health()
+    assert set(health) == {"generation"}
+    assert health["generation"]["state"] == "failing"
+    assert set(health["generation"]) == {"state","updated_at"}
+    assert private not in json.dumps(health)
+    snapshot=ledger.snapshot()
+    assert snapshot["spent_usd"] == 0
+    # Preserve the existing conservative unknown-charge handling for HTTP 402.
+    assert bool(snapshot["reserved_usd"]) is (status == 402)
+    assert snapshot["uncertain_calls"] == int(status == 402)
+    for path in tmp_path.glob("operator.sqlite3*"):
+        assert private.encode() not in path.read_bytes()
 
 
 def test_nebius_verification_uses_original_passages_and_preserves_conflict_and_missing_statuses(transport_stub):
@@ -242,6 +267,34 @@ def test_provider_dispatch_cache_duplicate_and_cost_use_selected_provider(tmp_pa
     assert service.cache_key(openai_course,service.payload(openai_course)) != service.cache_key(duplicate,service.payload(duplicate))
     assert service.provider_metadata()["model"] == MODEL
     assert service.provider_metadata()["pricing"] == PRICING
+
+
+@pytest.mark.parametrize("mode",["openai","nebius"])
+def test_previous_prompt_review_cache_is_not_reused_but_new_review_cache_is(tmp_path,mode):
+    provider=SampleProvider()
+    service=Service(tmp_path,10,provider=provider,providers={"nebius":provider})
+    course=prepared(service,provider,mode=mode)
+    payload=service.payload(course)
+    previous_payload={**payload,"prompt_version":"easy-street-2.0"}
+    generated,verification=demo_module(provider.document,previous_payload)
+    legacy="Legacy uncited assurance must not survive a prompt revision."
+    next(section for section in generated.sections if section.kind == "introduction").body=legacy
+    previous_key=service.cache_key(course,previous_payload)
+    service.store.cache_put(previous_key,{"generated":generated.model_dump(),"verification":verification.model_dump()})
+    assert service.estimate(course)["provider_calls_max"] == 2
+    job,_=service.submit(course["id"],GenerateInput(idempotency_key="revised-source-review"))
+    service.run(job["id"])
+    assert service.store.get("jobs",job["id"])["status"] == "complete"
+    assert provider.calls == ["generation","verification"]
+    assert legacy not in json.dumps(service.store.get("courses",course["id"])["sections"])
+    usage=service.store.usage_records()
+    equivalent=prepared(service,provider,mode=mode)
+    assert service.estimate(equivalent)["provider_calls_max"] == 0
+    cached,_=service.submit(equivalent["id"],GenerateInput(idempotency_key="revised-review-cache-hit"))
+    service.run(cached["id"])
+    assert service.store.get("jobs",cached["id"])["status"] == "complete"
+    assert provider.calls == ["generation","verification"]
+    assert service.store.usage_records() == usage
 
 
 @pytest.mark.parametrize("failure,status,billed",[

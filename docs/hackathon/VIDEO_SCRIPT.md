@@ -1,6 +1,6 @@
 # Demonstration video script
 
-Target duration: **2 minutes 45 seconds**. This is a recording plan, not proof that any pending feature or deployment works. Record after the approved live Nebius run and fresh-session acceptance. Rehearse to keep the published video below three minutes.
+Target duration: **2 minutes 45 seconds**. This is a recording plan, not proof that any pending feature or deployment works. Two approved live Nebius runs completed technically, including revised prompt v2.1. The revised introduction improved, but separate inspection still found citation-coverage/precision gaps. Record after owner content review, deliberate corrections, and fresh deployed-session acceptance; see [VERIFICATION.md](VERIFICATION.md). Rehearse to keep the published video below three minutes.
 
 Use only the original garden chapter and application UI. Do not record secret-manager screens, environment files, terminal history, provider credentials, billing details, judge credentials, personal documents, or private browser tabs. Use no music or third-party footage. Show accurate provider/model and job states. A cached result must be labeled as cached; it must not be portrayed as a new inference call.
 
@@ -20,8 +20,8 @@ Use only the original garden chapter and application UI. Do not record secret-ma
 
 - Use an uncached sample generation only after its test spending is approved. If the run is slow, shorten idle footage with an explicit “generation wait shortened” caption; retain the real start and result. Do not replace the result with unrelated mock content.
 - Keep more than one minute of actual application interaction on screen. Record desktop interaction at readable text size; show a brief mobile view only if it was tested and helps the story.
-- If evidence is insufficient or a reviewer misses a claim, show the honest review state or a manual correction. Do not claim perfect source grounding or guaranteed correctness.
-- Verify every shown feature, button label, provider/model, access instruction, and link against the final tested revision. The exact model name must match the deployed runtime.
+- The first real sample returned zero automatic flags, yet a separate inspection caught a title-only introduction citation and an unsupported assurance. The second v2.1 sample improved that introduction but still had coverage/precision gaps despite zero automatic flags. Show the honest review state or a deliberate correction when demonstrating a missed claim. If evidence is insufficient, keep that visible. Do not claim perfect source grounding or guaranteed correctness.
+- Verify every shown feature, button label, provider/model, access instruction, and link against the final tested revision. [VERIFICATION.md](VERIFICATION.md) separates the fully green packaging-correction revision from later edits and records live/deployment gates. The exact model name must match the deployed runtime.
 - Inspect the entire recording for accidental secrets or personal data before approval. The source branch and draft PR are public with approval; merge and a new release remain unapproved. The owner must approve video publication. Upload to the approved public YouTube destination only after that approval.
 
 The [official rules](https://nebiusglobalaihackathon.devpost.com/rules) specify the public YouTube demonstration format. No recording, upload, or publication is performed by this script.

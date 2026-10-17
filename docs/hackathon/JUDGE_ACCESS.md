@@ -1,6 +1,6 @@
 # Judging access preparation
 
-This public file contains no credentials. **No hosted URL or testing-access arrangement is active yet.** Fly hosting and $15 total through December 15 are approved ($8 hosting, $3 aggregate inference including development, $4 contingency), with deployment conditional on final checks and a passing live Nebius test. Credentials, new account agreements, and payment setup stay under the owner's private control; runtime generation remains zero until the conditions pass. Free Better Stack email monitoring and labeled test alerts to the verified account email are approved, using the read-only operator status endpoint, but configuration and delivery are unverified. Branch publication and draft PR creation are approved and complete; merge, a new release, video publication, and entry submission remain unapproved. Fill the private testing fields only after the deployed workflow is verified.
+This public file contains no credentials. **No hosted URL or testing-access arrangement is active yet.** Fly hosting and $15 total through December 15 are approved ($8 hosting, $3 aggregate inference including development, $4 contingency), with deployment conditional on final checks and passing live Nebius acceptance. A development key is configured privately and both real samples passed technical checks, including revised prompt v2.1. Separate inspection still found coverage/precision gaps, so owner content review and manual correction remain pending. See [VERIFICATION.md](VERIFICATION.md). Credentials, new account agreements, and payment setup stay under the owner's private control; the prepared judging allowance remains zero until the conditions pass. Free Better Stack email monitoring and labeled test alerts to the verified account email are approved, using the read-only operator status endpoint, but the specific free-account terms are approved and signup reached email verification; monitor configuration and delivery remain unverified. Branch publication and draft PR creation are approved and complete; merge, a new release, video publication, and entry submission remain unapproved. Fill the private testing fields only after the deployed workflow is verified.
 
 ## Intended access
 
@@ -17,7 +17,7 @@ The operator prepares access values with [scripts/configure_judging.py](../../sc
 1. Open the approved HTTPS URL in a fresh browser window and sign in with the credential supplied privately. No registration, payment, or provider account is required.
 2. Choose **Generate sample with Nebius** for the one-click original garden chapter workflow. Its disclosure identifies the included licensed source and provider; preset small-course settings skip the manual outline steps in step 3. A funded operator configuration is required; an unavailable provider is not replaced with mock generation.
 3. For the manual workflow, choose **Try the sample chapter** or upload a PDF, DOCX, or TXT chapter you may process. Hosted upload size is 5 MiB; readable text is required because the judging image does not include optional local OCR tools. Review extracted passages, configure modules/assignments/quizzes/questions, and approve the outline/source disclosure. Hosted counts are bounded to three modules, three assignments, and three quizzes. Regular local installations retain the broader released limits.
-4. Generate using Nebius Token Factory. The configured NVIDIA model is `nvidia/nemotron-3-super-120b-a12b`; final instructions must match the actual tested deployment. Describe the measured wait time after the approved live test. A cached result must be labeled accordingly.
+4. Generate using Nebius Token Factory. The configured NVIDIA model is `nvidia/nemotron-3-super-120b-a12b`; final instructions must match the actual tested deployment. The two local development samples completed in 8.62 and 10.50 seconds; these observations are not a hosted average or guaranteed wait. Final instructions must use observed deployment timing after acceptance. A cached result must be labeled accordingly.
 5. Open source evidence beside a learning note or quiz. Compare exact quotations and source locations, inspect review warnings, and edit the result. Automated support review is fallible; missing evidence must remain visible.
 6. Regenerate a section, export learner HTML, and inspect the separate answer key if useful. A JSON backup contains answers and selected quotations; avoid sharing it as a learner-only handout.
 7. Delete the temporary workspace when finished. The prepared active-workspace retention period is 24 hours; active work may delay physical removal. The proposed Fly volume also retains daily snapshots for five days, so application deletion does not instantly erase backup copies. Tell judges the final host's verified cleanup and backup retention before submission; no host policy is active yet.
@@ -27,12 +27,12 @@ The operator prepares access values with [scripts/configure_judging.py](../../sc
 
 | Field | Current state |
 | --- | --- |
-| Application URL and deployed revision | Conditional deployment approved; final checks, passing live test, secure setup, and actual deployment pending |
+| Application URL and deployed revision | Conditional deployment approved; two real samples technically passed, including v2.1; owner content review/correction, final production-secret checks, and actual deployment remain pending |
 | Judge password | Not recorded here; private testing field only |
 | Monitored access-help route | Owner must approve and confirm |
-| Verified average/maximum small-run wait | Pending approved live test |
+| Observed small-run wait | Two local development samples: 8.62 and 10.50 seconds; a deployed average/maximum is not yet measured |
 | Working period and operator coverage | $15 through December 15 approved; actual host availability and monitoring verification pending |
-| Cleanup behavior observed | Pending acceptance test |
+| Cleanup behavior observed | Local automated/container checks passed; observation on the approved deployed host remains pending |
 | Last fresh-session verification | Not performed against a deployed service |
 
 ## Acceptance before offering access

@@ -1,6 +1,6 @@
 # Easy Street — Devpost draft
 
-Entry draft for review, included on the public hackathon branch. It has not been submitted to Devpost. Replace the remaining verification fields with measured results before using this as the final entry. Do not claim that the hosted or real Nebius paths have passed until the evidence exists. No Devpost entry was modified or submitted by this preparation.
+Entry draft for review, included on the public hackathon branch. It has not been submitted to Devpost. Replace the remaining verification fields with measured results before using this as the final entry. Two real Nebius runs passed technical checks, including revised prompt v2.1. Separate content inspection still found citation-coverage/precision gaps. Do not portray live integration success as final content acceptance or a working hosted deployment. No Devpost entry was modified or submitted by this preparation.
 
 ## Project name
 
@@ -24,7 +24,7 @@ Learner HTML, separate answer-key HTML, and JSON backup exports make the work us
 
 We extended the released Easy Street repository rather than starting a new application. React and TypeScript provide the editor; FastAPI and SQLite handle extraction, course state, versions, jobs, evidence, caching, and usage reservations.
 
-The contest integration adds Nebius Token Factory as a backend provider while preserving OpenAI support. Its configured model is **`nvidia/nemotron-3-super-120b-a12b`**. **Before entry submission, verify that identifier against the approved live run and link its record here.** Token Factory is wired to the actual generation and support-review calls. No web search or external retrieval contributes educational claims. Source passages and outline text are treated as untrusted data, including instructions embedded in a document.
+The contest integration adds Nebius Token Factory as a backend provider while preserving OpenAI support. Its configured model is **`nvidia/nemotron-3-super-120b-a12b`**. The authenticated catalog and both approved live runs verified that identifier, including revised prompt v2.1; see [verification](VERIFICATION.md). Owner content review and manual corrections are still required. Token Factory is wired to the actual generation and support-review calls. No web search or external retrieval contributes educational claims. Source passages and outline text are treated as untrusted data, including instructions embedded in a document.
 
 The hosted demo keeps the operator's Nebius key in the server's secret environment. Browsers receive course results and non-secret configuration, never provider credentials. Bounded uploads, module/token limits, duplicate-request handling, concurrency control, and persistent usage accounting constrain operator exposure.
 
@@ -37,7 +37,8 @@ Source quotations are necessary but do not automatically substantiate every sent
 - Preserved editable modules, configurable assessments, evidence views, and recovery from the released application.
 - Kept provider credentials on the backend and retained source-only course generation.
 - Prepared a separately bounded judging configuration and an original sample workflow.
-- Verified locally: **219 backend/integration tests and 49 frontend tests passed**, with two environment-dependent backend fixtures skipped. The production frontend and local Linux container acceptance passed, including a 512 MiB/0.5 CPU offline fixture. Provider regressions and browser generation used mocks; the zero-funded container used explicit offline content. See [verification](VERIFICATION.md). **Real Nebius tokens, latency, cost and content review remain pending; insert them only after the approved run.**
+- The corrected public revision passed Linux, Apple Silicon Mac, and Intel Mac CI, including tests, build, packaging, production smoke, and fresh Python-only ZIP installation. Local 512 MiB/0.5 CPU container acceptance also passed with explicit offline content. See [verification](VERIFICATION.md) for exact revision-specific counts and the scope of mocks.
+- The first approved live Nebius sample returned ten sections with exact quotations in 8.62 seconds: 5,984 input and 1,397 output tokens, at $0.0030525 estimated from reported usage. Zero automatic review flags did not establish complete support: a separate content inspection found a title-only introduction citation and an unsupported assurance. A second bounded v2.1 run returned ten sections with exact quotations in 10.50 seconds at $0.0041139. It improved the introduction, but citation-coverage and approximation gaps remain. Owner review and manual correction are still required. Aggregate estimated cost across both runs was $0.0071664; see [verification](VERIFICATION.md).
 
 ## What we learned
 
@@ -53,7 +54,7 @@ Best Apps and Agents. React, TypeScript, FastAPI, SQLite, Nebius Token Factory, 
 
 ## Nebius and NVIDIA feedback
 
-Record observed feedback after the approved real run: structured-output compatibility, model latency, output completeness, actual token accounting, and any reproducible error. Include what worked and what required adaptation. Do not fabricate platform feedback from mocked tests.
+Observed in the first approved sample: Token Factory accepted the configured Nemotron model and returned schema-valid generation and support-review responses. The complete ten-section job took 8.62 seconds and reported 5,984 input / 1,397 output tokens. Exact quotations were retained. However, the support review returned zero flags while a separate inspection found a title-only factual citation and stronger assurance wording than the chapter supports. Revised prompt v2.1 and a new cache identity completed a second real sample in 10.50 seconds, reporting 8,079 input / 1,878 output tokens. Its introduction cites substantive source material and no longer adds the absorption guarantee. Separate inspection still found citation-coverage and approximation gaps despite zero automatic flags. These two small samples verify the integration and expose review limits; they are not a platform-wide quality or latency benchmark. Final feedback should add actual hosting results.
 
 ## Existing project and contest changes
 
@@ -63,10 +64,10 @@ Easy Street v1.0.0 existed before this hackathon adaptation. Its repository hist
 
 | Field | Value before submission |
 | --- | --- |
-| Tested public source revision | [6524760b228a80088e0e3e784d907ff30f992e43](https://github.com/agammann/easy-street/commit/6524760b228a80088e0e3e784d907ff30f992e43), published on the [hackathon branch](https://github.com/agammann/easy-street/tree/hackathon/nebius-nemotron-2026); [draft PR #1](https://github.com/agammann/easy-street/pull/1) open, not merged/released. Local evidence recorded; remote CI running, result pending. |
+| Tested public source revision | [1f75aa907e647b06bb416b4ae13536281842aaf9](https://github.com/agammann/easy-street/commit/1f75aa907e647b06bb416b4ae13536281842aaf9), published on the [hackathon branch](https://github.com/agammann/easy-street/tree/hackathon/nebius-nemotron-2026); [draft PR #1](https://github.com/agammann/easy-street/pull/1) open, not merged/released. [CI run 38995934439](https://github.com/agammann/easy-street/actions/runs/38995934439) fully passed. Subsequent operational/prompt edits need their own final revision and checks; see [verification](VERIFICATION.md). |
 | Working judging URL | Fly/$15 approved through December 15; deployment conditional on final checks and a passing live Nebius test, not yet performed |
 | Public YouTube URL | Pending recording and publication approval |
-| Exact Nemotron model and approved live evidence | Up to $1 test approved; secure key configuration and real run pending |
+| Exact Nemotron model and approved live evidence | `nvidia/nemotron-3-super-120b-a12b` verified by the authenticated catalog and two approved real runs, including v2.1; owner content review/correction and deployed acceptance pending |
 | Contact for access failures | Owner must provide a monitored route |
 | Judge credentials | Put only in Devpost's private testing instructions, never this public file |
 

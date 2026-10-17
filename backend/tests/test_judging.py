@@ -557,6 +557,84 @@ def test_global_ledger_accounts_invalid_output_and_unknown_calls_without_source_
     assert len(provider.calls) == 1
 
 
+def test_provider_health_failure_recovery_is_per_stage_and_survives_gateway_restart(gateway):
+    app,client,provider,clock=gateway
+    auth={"authorization":"Bearer "+OPERATOR_TOKEN}
+    initial=client.get("/api/operator/status",headers=auth).json()
+    assert initial["provider_health"] == {} and initial["needs_attention"] is False
+    metered=MeteredProvider(provider,app.ledger,"fixture-visitor")
+    payload={"passages":[{"id":"p1","text":"private-source-error-fixture"}],
+        "options":{"assignments":0,"quizzes":0,"questions_per_quiz":1}}
+    provider.failure=ProviderOutputError(UsageCounts(100,40))
+    with pytest.raises(ProviderOutputError):
+        metered.generate(payload)
+    response=client.get("/api/operator/status",headers=auth)
+    assert response.json()["needs_attention"] is True
+    failed=response.json()["provider_health"]
+    assert failed["generation"]["state"] == "failing"
+    assert datetime.fromisoformat(failed["generation"]["updated_at"]).tzinfo is not None
+    assert response.json()["budget"]["uncertain_calls"] == 0
+    assert response.json()["low_application_allowance"] is False
+    provider.failure=None
+    # A valid result at another stage cannot hide the failed generation stage.
+    metered.verify({"passages":payload["passages"],"sections":[]})
+    assert app.ledger.provider_health()["generation"] == failed["generation"]
+    assert client.get("/api/operator/status",headers=auth).json()["needs_attention"] is True
+    restarted=JudgingApplication(app.settings,provider=FakeProvider(),clock=lambda:clock[0])
+    with TestClient(restarted,base_url=app.settings.origin) as fresh:
+        persisted=fresh.get("/api/operator/status",headers=auth).json()
+        assert persisted["provider_health"] == app.ledger.provider_health()
+        assert persisted["needs_attention"] is True
+        MeteredProvider(restarted.provider,restarted.ledger,"another-visitor").generate(payload)
+        recovered=fresh.get("/api/operator/status",headers=auth)
+        assert recovered.json()["needs_attention"] is False
+        assert {stage["state"] for stage in recovered.json()["provider_health"].values()} == {"healthy"}
+        with restarted.ledger.connect() as db:
+            assert db.execute("SELECT COUNT(*) FROM provider_health").fetchone()[0] == 2
+        for secret in (provider.api_key,OPERATOR_TOKEN,PASSWORD_HASH,"private-source-error-fixture"):
+            assert secret not in recovered.text and secret not in response.text
+        assert fresh.get("/api/operator/status").status_code == 401
+
+
+@pytest.mark.parametrize("denial",["key","budget","queue"])
+def test_provider_preflight_denials_do_not_change_health_or_dispatch(gateway,denial):
+    app,_,provider,_=gateway
+    metered=MeteredProvider(provider,app.ledger,"fixture-visitor")
+    payload={"passages":[{"id":"p1","text":"Only the supplied source."}],
+        "options":{"assignments":0,"quizzes":0,"questions_per_quiz":1}}
+    metered.generate(payload)
+    before=app.ledger.provider_health()
+    if denial == "key":
+        provider.key_configured=False
+    elif denial == "budget":
+        app.ledger.limit=0
+    else:
+        app.ledger.slots=SimpleNamespace(acquire=lambda timeout:False,
+            release=lambda:pytest.fail("An unacquired slot must not be released."))
+    with pytest.raises(ProviderCallRejected):
+        metered.generate(payload)
+    assert provider.calls == ["generation"]
+    assert app.ledger.provider_health() == before
+    with app.ledger.connect() as db:
+        assert db.execute("SELECT COUNT(*) FROM calls").fetchone()[0] == 1
+
+
+def test_unknown_dispatched_failure_marks_health_without_persisting_raw_error(gateway):
+    app,client,provider,_=gateway
+    private="private-unknown-error-with-"+provider.api_key
+    provider.failure=RuntimeError(private)
+    with pytest.raises(RuntimeError):
+        MeteredProvider(provider,app.ledger,"fixture-visitor").verify({"passages":[],"sections":[]})
+    response=client.get("/api/operator/status",headers={"authorization":"Bearer "+OPERATOR_TOKEN})
+    assert response.json()["provider_health"]["verification"]["state"] == "failing"
+    assert response.json()["budget"]["uncertain_calls"] == 1
+    assert response.json()["needs_attention"] is True
+    assert private not in response.text and provider.api_key not in response.text
+    for path in app.root.glob("operator-usage.sqlite3*"):
+        assert private.encode() not in path.read_bytes()
+        assert provider.api_key.encode() not in path.read_bytes()
+
+
 def test_cancelled_write_waiter_cannot_take_the_gate_after_cancellation():
     lock=threading.Lock()
     lock.acquire()

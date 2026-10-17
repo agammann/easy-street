@@ -330,11 +330,14 @@ class JudgingApplication:
             if not wanted or not hmac.compare_digest(request.headers.get("authorization",""),"Bearer "+wanted):
                 return await reply({"detail":"Operator authentication required."},401)
             budget = self.ledger.snapshot()
+            provider_health = self.ledger.provider_health()
+            provider_failed = any(stage["state"] == "failing" for stage in provider_health.values())
             low = budget["remaining_usd"] <= max(.10,self.settings.budget_limit*.2)
             expired_credit = bool(self.settings.credit_expires_at and parse_time(self.settings.credit_expires_at) <= self.clock()+7*86400)
             expiring = parse_time(self.settings.expires_at) <= self.clock()+7*86400
             return await reply({"budget":budget,"provider_configured":self.provider.key_configured,
-                "needs_attention":low or expired_credit or expiring or budget["uncertain_calls"] > 0 or not self.provider.key_configured or getattr(self,"cleanup_failed",False),
+                "provider_health":provider_health,
+                "needs_attention":low or expired_credit or expiring or provider_failed or budget["uncertain_calls"] > 0 or not self.provider.key_configured or getattr(self,"cleanup_failed",False),
                 "low_application_allowance":low,"credit_expiry_within_seven_days":expired_credit,
                 "deployment_expiry_within_seven_days":expiring,
                 "credit_expiry_known":bool(self.settings.credit_expires_at),

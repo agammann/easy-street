@@ -18,7 +18,7 @@ Debian base components include separate copyleft terms; the earlier application'
 
 ## Nebius and NVIDIA
 
-The implementation pins Token Factory model ID **`nvidia/nemotron-3-super-120b-a12b`**. NVIDIA's [upstream Nemotron 3 Super 120B A12B model card](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16) identifies the [NVIDIA Nemotron Open Model License](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/). This identifies the family and governing upstream license; it does not assert which weight precision Nebius serves. The authenticated catalog and actual availability still need an approved live verification.
+The implementation pins Token Factory model ID **`nvidia/nemotron-3-super-120b-a12b`**. NVIDIA's [upstream Nemotron 3 Super 120B A12B model card](https://huggingface.co/nvidia/NVIDIA-Nemotron-3-Super-120B-A12B-BF16) identifies the [NVIDIA Nemotron Open Model License](https://www.nvidia.com/en-us/agreements/enterprise-software/nvidia-nemotron-open-model-license/). This identifies the family and governing upstream license. The authenticated catalog and both approved live generation/support-review runs verified this exact identifier, including revised prompt v2.1. That confirms observed account/model availability for the test, not which weight precision Nebius serves or acceptance of any new terms.
 
 The NVIDIA license permits commercial use and derivatives, excludes separable interface-linked applications from its derivative-work definition, and does not claim ownership of model outputs. Redistributing weights or model derivatives has separate license and notice conditions. Easy Street calls hosted inference and bundles no weights, NIM container, or NVIDIA runtime. The application's MIT license does not relicense the model or Nebius service. Adding any of those artifacts requires another review.
 
@@ -38,7 +38,8 @@ Use actual application footage, the original sample, and the project's own text.
 ## Final inventory before publication
 
 - [x] Record configured runtime model ID, NVIDIA upstream card, and upstream license.
-- [ ] Confirm the authenticated Nebius catalog mapping and applicable account/model terms before the live run.
+- [x] Confirm the authenticated Nebius catalog mapping and model availability in both approved live runs; see [verification](VERIFICATION.md).
+- [ ] Resolve any new account/model terms with the owner before accepting them or extending the service arrangement.
 - [ ] Confirm no new runtime dependency was added without a corresponding license entry.
 - [ ] Retain all notices in any built source/release distribution.
 - [ ] Verify the sample's TXT/PDF/DOCX files derive from the same original project text.
