@@ -10,7 +10,7 @@ Easy Street is free, MIT-licensed software that runs on your computer. **Bring y
 
 The public [hackathon branch](https://github.com/agammann/easy-street/tree/hackathon/nebius-nemotron-2026) adds Nebius/NVIDIA Nemotron and the [private judging demo](https://easy-street-agammann-2026.fly.dev), under review in [draft PR #1](https://github.com/agammann/easy-street/pull/1). **The published v1.0.0 download remains the earlier OpenAI release**; use the source instructions below for Nebius. See [verification](docs/hackathon/VERIFICATION.md) for actual live tests and remaining review limits.
 
-The judging host has an active [automatic retirement workflow](docs/hackathon/AUTO_SHUTDOWN.md). It is date-gated until **December 15, 2026, 12:30 p.m. PST**, after the required noon judging end; the hourly schedule normally first attempts cleanup at 12:37 p.m., subject to delay. It removes the approved compute, disk and IP resources after preserving encrypted aggregate accounting. Export temporary work before judging ends. Normal local installations are unaffected.
+The judging host has an active [automatic retirement workflow](docs/hackathon/AUTO_SHUTDOWN.md). It is date-gated until **December 15, 2026, 12:30 p.m. PST**, after the required noon judging end; the fifteen-minute trigger cadence normally first attempts cleanup at 12:37 p.m., subject to delay. It removes the approved compute, disk and IP resources after preserving encrypted aggregate accounting. Export temporary work before judging ends. Normal local installations are unaffected.
 
 ## Features
 
