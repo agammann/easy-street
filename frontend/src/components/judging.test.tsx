@@ -56,7 +56,7 @@ describe('isolated judging workspace gate', () => {
     await user.click(await screen.findByRole('button', { name: 'Delete my workspace' }))
     expect(fetchMock).toHaveBeenCalledTimes(1)
     const dialog = screen.getByRole('dialog')
-    expect(within(dialog).getByText(/permanently deletes/)).toBeVisible()
+    expect(within(dialog).getByText(/deletes this session’s uploaded documents/)).toBeVisible()
     await user.click(within(dialog).getByRole('button', { name: 'Delete files & sign out' }))
     expect(await within(dialog).findByText('Cancel the active job before deleting this workspace.')).toBeVisible()
     expect(screen.getByText('Protected course workspace')).toBeVisible()
@@ -161,7 +161,7 @@ describe('provider selection and one-click licensed sample', () => {
   it('describes hosted retention and the emergency cutoff without a browser key field', async () => {
     vi.spyOn(api, 'usage').mockResolvedValue({ budget: config.budget, records: [] })
     render(<Settings config={{ ...config, hosting_mode: 'judging', providers: config.providers!.filter(provider => provider.name === 'nebius'), demo: { retention_hours: 24 } }} onRefresh={vi.fn()}/>)
-    expect(screen.getByText(/isolated server workspace for up to 24 hours/)).toBeVisible()
+    expect(screen.getByText(/active isolated server workspace expires after 24 hours/)).toBeVisible()
     expect(screen.getByText(/emergency spending cutoff pauses new generation/)).toBeVisible()
     expect(screen.queryByText(/stay on this machine/)).not.toBeInTheDocument()
     expect(screen.queryByRole('textbox')).not.toBeInTheDocument()

@@ -1,6 +1,6 @@
-# Proposal only: no Fly account, service, payment, or deployment is configured.
+# Reusable template: the deployed judging instance is recorded in the docs.
 # Replace both placeholders only after host/budget/deployment approval.
-# A 512 MiB acceptance test and mounted-volume UID 10001 write test are gates.
+# Verify 512 MiB acceptance and mounted-volume UID 10001 writes for each host.
 # This file does not impose a maximum Machine count. Approved deployment must
 # use --ha=false --local-only, then verify exactly one Machine and one volume.
 app = "REPLACE_WITH_APPROVED_APP"
@@ -9,7 +9,8 @@ kill_signal = "SIGTERM"
 kill_timeout = 30
 
 [build]
-  dockerfile = "deploy/Dockerfile"
+  # Fly resolves this path relative to this configuration file's directory.
+  dockerfile = "Dockerfile"
 
 [deploy]
   strategy = "rolling"
