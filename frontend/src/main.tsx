@@ -1,6 +1,7 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
 import App from './App'
+import { SessionGate } from './components/SessionGate'
 import './styles.css'
 
-createRoot(document.getElementById('root')!).render(<StrictMode><App /></StrictMode>)
+createRoot(document.getElementById('root')!).render(<StrictMode><SessionGate><App /></SessionGate></StrictMode>)

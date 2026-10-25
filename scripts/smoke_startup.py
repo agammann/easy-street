@@ -23,6 +23,16 @@ def check(condition, message):
         raise RuntimeError(message)
 
 
+def isolated_environment(environment=None):
+    """Keep smoke tests independent of all inherited provider and application settings."""
+    environment = os.environ if environment is None else environment
+    result = {key: value for key, value in environment.items()
+              if not key.upper().startswith(("OPENAI_", "NEBIUS_", "EASY_STREET_"))}
+    result.update(OPENAI_API_KEY="", NEBIUS_API_KEY="", EASY_STREET_BUDGET_USD="0",
+                  PYTHON_DOTENV_DISABLED="1", PYTHONUNBUFFERED="1")
+    return result
+
+
 def require_free_port():
     # Windows allows SO_REUSEADDR to bind beside an existing listener, so first
     # reject a successful TCP connection. No HTTP request reaches that app.
@@ -75,9 +85,8 @@ class Server:
         require_free_port()
         # The disposable root contains no env files, and inherited provider settings
         # are removed. The app uses only the bundled offline sample in this test.
-        env = {key: value for key, value in os.environ.items() if not key.upper().startswith("OPENAI_")}
-        env.update(OPENAI_API_KEY="", EASY_STREET_BUDGET_USD="0",
-                   EASY_STREET_DATA_DIR=str(self.root / "data"), PYTHONUNBUFFERED="1")
+        env = isolated_environment()
+        env["EASY_STREET_DATA_DIR"] = str(self.root / "data")
         self.log = (self.root / "server.log").open("ab")
         self.process = subprocess.Popen([sys.executable, str(self.root / "start.py")],
                                         cwd=self.root, env=env, stdout=self.log, stderr=subprocess.STDOUT)
@@ -146,7 +155,10 @@ def verify_assets():
 
 
 def verify_no_usage():
-    check(api("/api/config")["key_configured"] is False, "Smoke server unexpectedly has an API key.")
+    config = api("/api/config")
+    check(config["key_configured"] is False and all(
+        provider["key_configured"] is False for provider in config["providers"]),
+        "Smoke server unexpectedly has an API key.")
     usage = api("/api/usage")
     check(not usage["records"] and usage["budget"]["spent_usd"] == 0
           and usage["budget"]["reserved_usd"] == 0, "Offline test recorded usage or reserved money.")

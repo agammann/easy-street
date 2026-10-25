@@ -3,6 +3,7 @@ import argparse
 import os
 from pathlib import Path
 import signal
+import stat
 import subprocess
 import sys
 import tempfile
@@ -11,9 +12,11 @@ from urllib.error import URLError
 import zipfile
 
 try:
-    from .smoke_startup import api, check, require_free_port, verify_assets, verify_no_usage
+    from .package_release import validate_public_release_name
+    from .smoke_startup import api, check, isolated_environment, require_free_port, verify_assets, verify_no_usage
 except ImportError:
-    from smoke_startup import api, check, require_free_port, verify_assets, verify_no_usage
+    from package_release import validate_public_release_name
+    from smoke_startup import api, check, isolated_environment, require_free_port, verify_assets, verify_no_usage
 
 
 def stop_launcher(process):
@@ -53,9 +56,8 @@ def stop_launcher(process):
 
 def verify_launcher(root, environment):
     require_free_port()
-    env = {**environment, "OPENAI_API_KEY":"", "EASY_STREET_BUDGET_USD":"0",
-           "EASY_STREET_DATA_DIR":str(root / "launcher-data"),
-           "PYTHON_DOTENV_DISABLED":"1", "PYTHONUNBUFFERED":"1"}
+    env = isolated_environment(environment)
+    env["EASY_STREET_DATA_DIR"] = str(root / "launcher-data")
     options = ({"creationflags":subprocess.CREATE_NO_WINDOW} if os.name == "nt"
                else {"start_new_session":True})
     log_path = root / "launcher-smoke.log"
@@ -92,7 +94,7 @@ def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("archive", type=Path)
     args = parser.parse_args()
-    env = {k:v for k,v in os.environ.items() if not k.upper().startswith(("OPENAI_", "EASY_STREET_"))}
+    env = isolated_environment()
     with tempfile.TemporaryDirectory(prefix="easy-street-release-") as directory:
         temporary = Path(directory)
         with zipfile.ZipFile(args.archive) as archive:
@@ -102,8 +104,12 @@ def main():
                 target = (temporary / info.filename).resolve()
                 if not target.is_relative_to(temporary.resolve()) or not info.filename.startswith("easy-street/"):
                     raise SystemExit("Release ZIP contains an unexpected path.")
-                if any(part in (".env.local", ".env", ".venv", "node_modules", "data") for part in Path(info.filename).parts):
-                    raise SystemExit("Release ZIP contains private runtime files.")
+                try:
+                    validate_public_release_name(info.filename.removeprefix("easy-street/").removesuffix("/"))
+                except ValueError as exc:
+                    raise SystemExit(str(exc)) from None
+                if stat.S_ISLNK(info.external_attr >> 16):
+                    raise SystemExit("Release ZIP contains symbolic links.")
             archive.extractall(temporary)
         root = temporary / "easy-street"
         subprocess.run([sys.executable, "launch.py", "--setup-only"], cwd=root, env=env, check=True, timeout=300)

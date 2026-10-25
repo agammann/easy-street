@@ -1,0 +1,45 @@
+# Local container rehearsal only. External deployment still requires approval.
+# Supply secrets through the parent process environment or an ignored env file.
+services:
+  judging:
+    build:
+      context: ..
+      dockerfile: deploy/Dockerfile
+    image: easy-street-judging:local
+    ports:
+      - "127.0.0.1:8000:8000"
+    environment:
+      PORT: "8000"
+      EASY_STREET_DEMO_ORIGIN: "${EASY_STREET_DEMO_ORIGIN:-http://localhost:8000}"
+      EASY_STREET_DEMO_ALLOW_HTTP: "${EASY_STREET_DEMO_ALLOW_HTTP:-0}"
+      EASY_STREET_DEMO_DATA_DIR: /var/lib/easy-street
+      EASY_STREET_DEMO_BUDGET_USD: "${EASY_STREET_DEMO_BUDGET_USD:-0}"
+      EASY_STREET_DEMO_SESSION_BUDGET_USD: "${EASY_STREET_DEMO_SESSION_BUDGET_USD:-0.50}"
+      EASY_STREET_DEMO_RETENTION_HOURS: "${EASY_STREET_DEMO_RETENTION_HOURS:-24}"
+      EASY_STREET_DEMO_MAX_SESSIONS: "${EASY_STREET_DEMO_MAX_SESSIONS:-100}"
+      EASY_STREET_DEMO_MAX_CONCURRENT: "${EASY_STREET_DEMO_MAX_CONCURRENT:-2}"
+      EASY_STREET_DEMO_MAX_UPLOAD_MIB: "${EASY_STREET_DEMO_MAX_UPLOAD_MIB:-5}"
+      EASY_STREET_DEMO_MAX_MODULES: "${EASY_STREET_DEMO_MAX_MODULES:-3}"
+      EASY_STREET_DEMO_MAX_ASSIGNMENTS: "${EASY_STREET_DEMO_MAX_ASSIGNMENTS:-3}"
+      EASY_STREET_DEMO_MAX_QUIZZES: "${EASY_STREET_DEMO_MAX_QUIZZES:-3}"
+      EASY_STREET_DEMO_EXPIRES_AT: "${EASY_STREET_DEMO_EXPIRES_AT:-2026-12-16T08:00:00+00:00}"
+      EASY_STREET_JUDGE_PASSWORD_HASH: "${EASY_STREET_JUDGE_PASSWORD_HASH:?Set a private judge password hash}"
+      EASY_STREET_OPERATOR_TOKEN: "${EASY_STREET_OPERATOR_TOKEN:?Set a private operator token}"
+      NEBIUS_API_KEY: "${NEBIUS_API_KEY:-}"
+      NEBIUS_CREDIT_EXPIRES_AT: "${NEBIUS_CREDIT_EXPIRES_AT:-}"
+    volumes:
+      - judging-data:/var/lib/easy-street
+    read_only: true
+    tmpfs:
+      - /tmp:size=64m,mode=1777
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    pids_limit: 128
+    mem_limit: 2g
+    cpus: 1.0
+    restart: unless-stopped
+    stop_grace_period: 30s
+volumes:
+  judging-data:

@@ -66,3 +66,18 @@ def test_proposal_titles_remain_explicit_when_evidence_needs_review_and_in_expor
     exported, _, _ = export_course(course, "html", document)
     for kind in proposal_kinds:
         assert f"Proposed · Unlabeled {kind}" in exported
+
+
+def test_title_quote_rejected_by_review_stays_flagged_even_when_other_source_passages_have_the_facts():
+    document=extract(SAMPLE_PATH.read_bytes(),"chapter.txt")
+    title=document["passages"][0]
+    generated=GeneratedCourse(sections=[{"id":"introduction","kind":"introduction","title":"Introduction",
+        "body":"Observe soil moisture and apply water slowly to ensure proper absorption.",
+        "answer":None,"explanation":None,
+        "evidence":[{"passage_id":title["id"],"quote":title["text"]}]}])
+    review=Verification(results=[{"section_id":"introduction","status":"unsupported",
+        "reason":"The cited title does not support these factual claims; other uncited passages cannot fill the gap."}])
+    section=ground_sections(generated,document["passages"],review)[0]
+    assert section["support_status"] == "needs_review"
+    assert section["evidence"] == generated.sections[0].model_dump()["evidence"]
+    assert any("unsupported" in note for note in section["review_notes"])
