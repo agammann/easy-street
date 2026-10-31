@@ -59,6 +59,9 @@ def prepare_generation(payload: dict):
     schema = create_model("EvidenceReferencedCourse",__base__=StrictModel,
                           sections=(list[section_schema],Field(min_length=1,max_length=1 if target else 20)))
     prepared = {k:v for k,v in payload.items() if k != "passages"}
+    if target:
+        # The previous saved section is local data, not generation context.
+        prepared["target_section"] = {"id":target["id"],"kind":target["kind"]}
     prepared["generation_mode"] = "regenerate_section" if target else "full_course"
     prepared["evidence_catalog"] = catalog
     return prepared,schema,catalog

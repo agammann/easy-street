@@ -117,7 +117,7 @@ class Service:
                 "options":{**course["options"],"modules":1,"assignments":module["assignments"],"quizzes":module["quizzes"]},
                 "course_options":course["options"],"module":module,
                 "outline":{"title":course["title"],"module_title":module["title"],"objectives":module["objectives"]},
-                "target_section":target,"passages":selected}
+                "target_section":{"id":target["id"],"kind":target["kind"]} if target else None,"passages":selected}
 
     def pending_modules(self,course,section_id=None):
         modules = course_modules(course)
@@ -156,6 +156,14 @@ class Service:
 
     def cache_key(self,course,payload):
         identity = {"payload":payload,"model":MODEL,"mode":course["mode"]}
+        target = payload.get("target_section")
+        if target:
+            saved = next((s for s in course["sections"] if s["id"] == target["id"]),None)
+            if not saved or saved["kind"] != target["kind"]:
+                raise ValueError("Section not found.")
+            # Keep edit-sensitive cache behavior without sending saved section data
+            # or its digest to the provider or exposing it in an estimate.
+            identity["target_snapshot"] = hashlib.sha256(json.dumps(saved,sort_keys=True).encode()).hexdigest()
         if course["mode"] == "demo":
             identity["demo_version"] = DEMO_VERSION
         return hashlib.sha256(json.dumps(identity,sort_keys=True).encode()).hexdigest()
