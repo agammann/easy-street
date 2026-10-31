@@ -6,6 +6,8 @@ The review used Python distribution metadata and shipped license files, the exac
 
 Dependency source, virtual environments, package-manager caches, and the frontend build are excluded from this source repository. When distributing a prebuilt application or vendoring packages, retain the corresponding dependency licenses and notices alongside that distribution.
 
+On October 31, 2026, the updated Python lock was checked separately: pypdf 6.21.4 declares BSD-3-Clause and certifi 2026.10.23 declares MPL-2.0; both installed distributions include their license files. Certifi is now also a direct requirement. The tables below record the October 15 review; use the lockfile for the current exact versions.
+
 ## Direct backend dependencies
 
 | Package | Tested version | Declared license |
