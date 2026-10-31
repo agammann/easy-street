@@ -21,7 +21,7 @@ Source checks and a separate model review can miss unsupported claims. Read the 
 
 ## Download and start
 
-Download **easy-street-1.0.0.zip** from the [latest release](https://github.com/agammann/easy-street/releases/latest), then extract the whole ZIP into a writable folder. This asset includes the built interface: **end users do not need Git, Node.js, or a frontend build**. GitHub's automatic source-code ZIP is a different download and still needs a build.
+Download **easy-street-1.0.1.zip** from the [latest release](https://github.com/agammann/easy-street/releases/latest), then extract the whole ZIP into a writable folder. This asset includes the built interface: **end users do not need Git, Node.js, or a frontend build**. GitHub's automatic source-code ZIP is a different download and still needs a build.
 
 1. Install **Python 3.12** from [python.org](https://www.python.org/downloads/). Include the Python launcher on Windows.
 2. Open the extracted `easy-street` folder. On Windows double-click **Easy Street.cmd**. On macOS open **Easy Street.command**, or use the terminal command below. On Linux use the terminal command.
@@ -180,7 +180,7 @@ See [COMPLETION_REPORT.md](COMPLETION_REPORT.md) for actual results. Hosted macO
 ## Troubleshooting and limits
 
 - **Missing Python:** install Python 3.12 and reopen the terminal. Linux may also need its Python venv package.
-- **Missing frontend:** download the release asset `easy-street-1.0.0.zip`, rather than GitHub's automatic source ZIP, or follow source build instructions.
+- **Missing frontend:** download the release asset `easy-street-1.0.1.zip`, rather than GitHub's automatic source ZIP, or follow source build instructions.
 - **Port 8000 occupied:** stop the other backend with Ctrl+C; use only one server per data directory.
 - **Dependency setup failed:** check internet access and Python version, then rerun. Keep lockfiles intact.
 - **No configured key:** run the private configuration command, check provider access/billing, and restart. Offline demo remains available.

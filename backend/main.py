@@ -56,7 +56,7 @@ def public_job(job):
 def create_app(data_dir: Path | None = None, provider=None, budget_limit: float | None = None):
     service = Service(Path(data_dir or os.environ.get("EASY_STREET_DATA_DIR",ROOT / "data")),
                       float(budget_limit if budget_limit is not None else os.environ.get("EASY_STREET_BUDGET_USD","1.00")),provider)
-    app = FastAPI(title="Easy Street",version="1.0.0",docs_url="/api/docs",redoc_url=None)
+    app = FastAPI(title="Easy Street",version="1.0.1",docs_url="/api/docs",redoc_url=None)
     app.state.service = service
     app.add_middleware(CORSMiddleware,allow_origins=ORIGINS,allow_credentials=False,allow_methods=["GET","POST","PATCH"],allow_headers=["Content-Type"])
     app.add_middleware(TrustedHostMiddleware,allowed_hosts=["localhost","127.0.0.1","[::1]"])
