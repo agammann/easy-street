@@ -129,7 +129,7 @@ The app reserves estimated costs and checks the allowance before each call. Auto
 
 ## Build from source
 
-Developers need Git, Python 3.12, Node.js 22.12 or newer, and pnpm 10. Release ZIP users do not need Node.js.
+Developers need Git, Python 3.12, pnpm 10, and Node.js 22.22.2 or later in the 22.x line, 24.15.0 or later in the 24.x line, or 26 or newer. Release ZIP users do not need Node.js.
 
 ```powershell
 git clone https://github.com/agammann/easy-street.git
