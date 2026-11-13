@@ -90,7 +90,7 @@ class ArtifactFixture:
         assert method == "GET"
         assert url.startswith("https://api.github.com/repos/" + shutdown.REPOSITORY)
         if "?per_page" in url:
-            return {"artifacts": [copy.deepcopy(self.metadata)]}
+            return {"total_count": 1, "artifacts": [copy.deepcopy(self.metadata)]}
         return copy.deepcopy(self.metadata)
 
     def raw(self, method, url, token=None, body=None, redirect=False):
@@ -296,6 +296,60 @@ def test_partial_failure_recovers_prior_run_backup_on_later_day(prepared, tmp_pa
     assert result["artifact_id"] == "321"
     fly.fail_delete_volume = False
     assert shutdown.execute(fly, recovered, certificate, shutdown.SHUTDOWN_DUE + timedelta(days=1), env, artifacts)["status"] == "retired"
+
+
+def test_recovery_finds_a_final_backup_after_the_first_artifact_page(prepared, tmp_path):
+    _, _, certificate, artifacts, env = prepared
+    original = artifacts.json
+    synthetic = [{"id": 1000 + i, "name": f"synthetic-retirement-action-compat-{i}",
+                  "expired": False, "created_at": shutdown.SHUTDOWN_DUE.isoformat(),
+                  "workflow_run": {"id": i + 1000, "head_branch": "main"}} for i in range(100)]
+    seen = []
+    def pages(method, url, token, body=None):
+        if "?per_page" not in url:
+            return original(method, url, token, body)
+        page = int(url.rsplit("=", 1)[1])
+        seen.append(page)
+        return {"total_count": 101, "artifacts": copy.deepcopy(
+            synthetic if page == 1 else [artifacts.metadata])}
+    artifacts.json = pages
+    recovered = tmp_path / "later-page"
+    result = shutdown.recover_backup(artifacts, recovered, certificate,
+                                     shutdown.SHUTDOWN_DUE + timedelta(days=1), env)
+    assert result["artifact_id"] == "321"
+    assert seen == [1, 2, 1, 2]
+    assert sorted(p.name for p in recovered.iterdir()) == ["ledger.cms", "receipt.json"]
+
+
+@pytest.mark.parametrize("case", ["short", "changed_count", "duplicate", "changed_scan", "too_many", "unavailable"])
+def test_recovery_fails_closed_on_unreliable_artifact_pagination(prepared, tmp_path, case):
+    _, _, certificate, artifacts, env = prepared
+    synthetic = [{"id": 1000 + i, "name": f"synthetic-retirement-action-compat-{i}",
+                  "expired": False, "created_at": shutdown.SHUTDOWN_DUE.isoformat(),
+                  "workflow_run": {"id": i + 1000, "head_branch": "main"}} for i in range(100)]
+    calls = []
+    def pages(method, url, token, body=None):
+        assert "?per_page" in url
+        page = int(url.rsplit("=", 1)[1])
+        calls.append(page)
+        if case == "unavailable" and page == 2:
+            raise shutdown.ShutdownError("Inventory unavailable.")
+        count = 501 if case == "too_many" else 102 if case == "changed_count" and page == 2 else 101
+        entries = copy.deepcopy(synthetic if page == 1 else [artifacts.metadata])
+        if case == "short" and page == 1:
+            entries.pop()
+        if case == "duplicate" and page == 2:
+            entries[0]["id"] = synthetic[0]["id"]
+        if case == "changed_scan" and len(calls) > 2 and page == 1:
+            entries[0]["name"] = "changed-during-scan"
+        return {"total_count": count, "artifacts": entries}
+    artifacts.json = pages
+    recovered = tmp_path / ("unreliable-" + case)
+    with pytest.raises(shutdown.ShutdownError):
+        shutdown.recover_backup(artifacts, recovered, certificate,
+                                shutdown.SHUTDOWN_DUE + timedelta(days=1), env)
+    assert not recovered.exists()
+    assert not artifacts.calls
 
 
 def test_stopped_machine_retry_recovers_previous_day_backup_without_starting_it(prepared, tmp_path):
