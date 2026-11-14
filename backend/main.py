@@ -58,7 +58,7 @@ def create_app(data_dir: Path | None = None, provider=None, budget_limit: float 
     origins = ORIGINS if allowed_origins is None else allowed_origins
     service = Service(Path(data_dir or os.environ.get("EASY_STREET_DATA_DIR",ROOT / "data")),
                       float(budget_limit if budget_limit is not None else os.environ.get("EASY_STREET_BUDGET_USD","1.00")),provider,providers=providers)
-    app = FastAPI(title="Easy Street",version="1.0.0",docs_url="/api/docs",redoc_url=None)
+    app = FastAPI(title="Easy Street",version="1.0.1",docs_url="/api/docs",redoc_url=None)
     app.state.service = service
     app.add_middleware(CORSMiddleware,allow_origins=origins,allow_credentials=False,allow_methods=["GET","POST","PATCH"],allow_headers=["Content-Type","X-Easy-Street-CSRF"])
     app.add_middleware(TrustedHostMiddleware,allowed_hosts=allowed_hosts or ["localhost","127.0.0.1","[::1]"])

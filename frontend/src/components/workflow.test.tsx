@@ -2,7 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { act, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { Editor } from './Editor'
-import { Outline } from './Outline'
+import { CostDialog, Outline } from './Outline'
 import { Upload } from './Upload'
 import type { Config, Course, Document, Section } from '../types'
 import { api } from '../api'
@@ -19,6 +19,13 @@ const config: Config = { provider: 'openai', model: 'model', key_configured: tru
 
 beforeEach(() => { vi.resetAllMocks(); vi.mocked(api.courseJob).mockResolvedValue(null); localStorage.clear() })
 describe('course review safeguards', () => {
+  it('describes the paid regeneration disclosure before confirmation', () => {
+    const estimate = { estimated_max_usd: 0.1, input_tokens_estimate: 100, output_tokens_limit: 1000, verification_included: true, pricing: config.pricing, budget: config.budget, notice: 'Estimate only.' }
+    render(<CostDialog estimate={estimate} demo={false} busy={false} regeneration onClose={vi.fn()} onConfirm={vi.fn()}/> )
+    expect(screen.getByText(/section ID and type will be sent/)).toHaveTextContent(/approved course and outline details/)
+    expect(screen.getByText(/section ID and type will be sent/)).toHaveTextContent(/generated content and all selected excerpts for the module/)
+    expect(screen.getByText(/section ID and type will be sent/)).toHaveTextContent(/saved section text is not sent as generation context/)
+  })
   it('keeps answer fields and verifier answer leaks out of learner view', async () => {
     const user = userEvent.setup()
     render(<Editor course={course} document={document} onCourse={vi.fn()} onRegenerate={vi.fn()} onBack={vi.fn()}/>)

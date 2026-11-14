@@ -26,7 +26,7 @@ Source checks and a separate model review can miss unsupported claims. Read the 
 
 ## Download and start
 
-Download **easy-street-1.0.0.zip** from the [latest release](https://github.com/agammann/easy-street/releases/latest), then extract the whole ZIP into a writable folder. This asset includes the built interface: **end users do not need Git, Node.js, or a frontend build**. GitHub's automatic source-code ZIP is a different download and still needs a build.
+Download **easy-street-1.0.1.zip** from the [latest release](https://github.com/agammann/easy-street/releases/latest), then extract the whole ZIP into a writable folder. This asset includes the built interface: **end users do not need Git, Node.js, or a frontend build**. GitHub's automatic source-code ZIP is a different download and still needs a build.
 
 1. Install **Python 3.12** from [python.org](https://www.python.org/downloads/). Include the Python launcher on Windows.
 2. Open the extracted `easy-street` folder. On Windows double-click **Easy Street.cmd**. On macOS open **Easy Street.command**, or use the terminal command below. On Linux use the terminal command.
@@ -171,7 +171,7 @@ Start with the [architecture](docs/hackathon/ARCHITECTURE.md), [costs and operat
 
 ## Build from source
 
-Developers need Git, Python 3.12, Node.js 22.12 or newer, and pnpm 10. Release ZIP users do not need Node.js.
+Developers need Git, Python 3.12, pnpm 10, and Node.js 22.22.2 or later in the 22.x line, 24.15.0 or later in the 24.x line, or 26 or newer. Release ZIP users do not need Node.js.
 
 The clone commands below explicitly select the public `hackathon/nebius-nemotron-2026` branch. This is required for Nebius/judging setup: the default branch and v1.0.0 still provide the earlier OpenAI application. The adaptation is under review in [draft PR #1](https://github.com/agammann/easy-street/pull/1). See the [verification report](docs/hackathon/VERIFICATION.md) and [current checks](https://github.com/agammann/easy-street/pull/1/checks) for test, packaging, and live-integration status.
 
@@ -226,7 +226,7 @@ See [COMPLETION_REPORT.md](COMPLETION_REPORT.md) for the published v1.0.0 result
 ## Troubleshooting and limits
 
 - **Missing Python:** install Python 3.12 and reopen the terminal. Linux may also need its Python venv package.
-- **Missing frontend:** download the release asset `easy-street-1.0.0.zip`, rather than GitHub's automatic source ZIP, or follow source build instructions.
+- **Missing frontend:** download the release asset `easy-street-1.0.1.zip`, rather than GitHub's automatic source ZIP, or follow source build instructions.
 - **Port 8000 occupied:** stop the other backend with Ctrl+C; use only one server per data directory.
 - **Dependency setup failed:** check internet access and Python version, then rerun. Keep lockfiles intact.
 - **No configured key:** run the masked helper for the selected provider, check provider access/billing, and restart. Settings shows each provider separately. Offline demo remains available.

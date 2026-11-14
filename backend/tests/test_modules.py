@@ -239,6 +239,53 @@ def test_target_regeneration_only_uses_its_module_and_preserves_other_edits(tmp_
     assert {p["id"] for p in provider.verified[-1]["passages"]} == set(module["selected_passage_ids"])
 
 
+def test_regeneration_payload_omits_saved_section_content(tmp_path):
+    service, provider, course = setup_course(tmp_path, modules=1, assignments=1, quizzes=1)
+    saved, _ = generate(service, course)
+    target = next(s for s in saved["sections"] if s["kind"] == "quiz")
+    marker = "SYNTHETIC_PRIVATE_MANUAL_ONLY"
+    target.update(title=marker + " title", body=marker + " body", answer=marker + " answer",
+                  explanation=marker + " explanation", review_notes=[marker + " review"])
+    target["evidence"][0]["quote"] = marker + " local evidence quote"
+    target["extra_local_metadata"] = marker + " arbitrary metadata"
+    service.store.put_course(saved)
+    payload = service.payload(saved, target["id"])
+    assert payload["target_section"] == {"id": target["id"], "kind": "quiz"}
+    assert marker not in json.dumps(payload)
+    assert payload["passages"]
+    cache_key = service.cache_key(saved, payload)
+    target["body"] = marker + " a different local edit"
+    changed_key = service.cache_key(saved, service.payload(saved, target["id"]))
+    assert changed_key != cache_key
+    target["body"] = marker + " another local edit"
+    assert service.cache_key(saved, service.payload(saved, target["id"])) not in (cache_key, changed_key)
+
+
+def test_regeneration_cache_changes_after_a_saved_edit(tmp_path):
+    service, provider, course = setup_course(tmp_path, modules=1, assignments=1, quizzes=1)
+    saved, _ = generate(service, course)
+    target = next(s for s in saved["sections"] if s["kind"] == "quiz")
+    job, _ = service.submit(saved["id"], GenerateInput(idempotency_key="regenerate-first", section_id=target["id"]))
+    service.run(job["id"])
+    assert service.store.get("jobs", job["id"])["status"] == "complete"
+    saved = service.store.get("courses", saved["id"])
+    target = next(s for s in saved["sections"] if s["id"] == target["id"])
+    marker = "SYNTHETIC_PRIVATE_AFTER_REGENERATION"
+    target["body"] = marker
+    service.store.put_course(saved)
+    local_digest = hashlib.sha256(json.dumps(target,sort_keys=True).encode()).hexdigest()
+    estimate = service.estimate(saved, target["id"])
+    assert estimate["cached"] is False
+    assert local_digest not in json.dumps(estimate)
+    job, _ = service.submit(saved["id"], GenerateInput(idempotency_key="regenerate-after-edit", section_id=target["id"]))
+    service.run(job["id"])
+    assert service.store.get("jobs", job["id"])["status"] == "complete"
+    assert len(provider.generated) == 3
+    assert marker not in json.dumps(provider.generated[-1])
+    assert local_digest not in json.dumps(provider.generated[-1])
+    assert local_digest not in json.dumps(provider.verified[-1])
+
+
 def test_public_module_job_does_not_expose_saved_provider_outputs(tmp_path):
     app = create_app(tmp_path,provider=SampleProvider(),budget_limit=10)
     client = TestClient(app,base_url="http://localhost")

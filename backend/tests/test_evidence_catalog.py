@@ -111,6 +111,7 @@ def test_regeneration_schema_requires_exactly_one_section_with_unchanged_identit
 
 
 def test_regeneration_adapter_sends_constrained_schema_and_expands_only_target(monkeypatch):
+    import hashlib
     from types import SimpleNamespace
     import openai
     from backend.provider import OpenAIProvider
@@ -125,13 +126,23 @@ def test_regeneration_adapter_sends_constrained_schema_and_expands_only_target(m
             return SimpleNamespace(output_parsed=kwargs["text_format"].model_validate(output),
                 usage=SimpleNamespace(input_tokens=20,output_tokens=30),status="completed")
     monkeypatch.setattr(openai,"OpenAI",StubClient)
+    marker = "SYNTHETIC_PRIVATE_MANUAL_ONLY"
+    target = {"id":"saved-notes","kind":"notes","title":marker + " title",
+              "body":marker + " body","answer":marker + " answer",
+              "explanation":marker + " explanation","review_notes":[marker],
+              "evidence":[{"passage_id":"p1","quote":marker}],"extra":marker}
+    local_digest = hashlib.sha256(json.dumps(target,sort_keys=True).encode()).hexdigest()
     result,_ = OpenAIProvider(api_key="test-placeholder").generate({
         "passages":[{"id":"p1","text":"Observe the soil before watering."}],
-        "target_section":{"id":"saved-notes","kind":"notes"}})
+        "target_section":target})
     schema = captured["text_format"].model_json_schema()
     assert schema["properties"]["sections"]["minItems"] == schema["properties"]["sections"]["maxItems"] == 1
     assert schema["$defs"]["TargetSectionId"]["enum"] == ["saved-notes"]
     assert schema["$defs"]["TargetSectionKind"]["enum"] == ["notes"]
-    assert json.loads(captured["input"])["generation_mode"] == "regenerate_section"
+    supplied = json.loads(captured["input"])
+    assert supplied["generation_mode"] == "regenerate_section"
+    assert supplied["target_section"] == {"id":"saved-notes","kind":"notes"}
+    assert marker not in captured["input"]
+    assert local_digest not in captured["input"]
     assert len(result.sections) == 1 and result.sections[0].id == "saved-notes"
     assert result.sections[0].evidence[0].quote == "Observe the soil before watering."

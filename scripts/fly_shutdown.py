@@ -309,6 +309,43 @@ def artifact_context(env):
         raise ShutdownError("Verified default-branch artifact context is required.")
 
 
+def stable_artifact_inventory(http, token):
+    """Read every bounded page twice; reject incomplete or changing inventories."""
+    endpoint = "https://api.github.com/repos/" + REPOSITORY + "/actions/artifacts?per_page=100&page="
+
+    def scan():
+        result, identities, total = [], set(), None
+        for page in range(1, 6):
+            listing = http.json("GET", endpoint + str(page), token)
+            if not isinstance(listing, dict) or not isinstance(listing.get("artifacts"), list):
+                raise ShutdownError("Backup artifact inventory was malformed.")
+            count = listing.get("total_count")
+            if type(count) is not int or not 0 <= count <= 500 or (total is not None and count != total):
+                raise ShutdownError("Backup artifact inventory was incomplete or changed.")
+            total = count
+            artifacts = listing["artifacts"]
+            if len(artifacts) != min(100, max(0, total - (page - 1) * 100)):
+                raise ShutdownError("Backup artifact inventory was incomplete or changed.")
+            for item in artifacts:
+                if not isinstance(item, dict) or type(item.get("id")) is not int or item["id"] <= 0:
+                    raise ShutdownError("Backup artifact inventory was malformed.")
+                if item["id"] in identities:
+                    raise ShutdownError("Backup artifact inventory contained duplicate entries.")
+                identities.add(item["id"])
+                run = item.get("workflow_run")
+                run = run if isinstance(run, dict) else {}
+                result.append({key: item.get(key) for key in ("id", "name", "expired", "created_at", "digest")} |
+                              {"workflow_run": {"id": run.get("id"), "head_branch": run.get("head_branch")}})
+            if len(result) == total:
+                return result
+        raise ShutdownError("Backup artifact inventory exceeded the safe page limit.")
+
+    first, second = scan(), scan()
+    if first != second:
+        raise ShutdownError("Backup artifact inventory changed during recovery.")
+    return first
+
+
 def verify_uploaded_backup(http, directory, certificate, env):
     artifact_context(env)
     directory = Path(directory)
@@ -325,11 +362,9 @@ def recover_backup(http, directory, certificate, now, env):
     artifact_context(env)
     if now < SHUTDOWN_DUE:
         raise ShutdownError("Final backup recovery is prohibited before retirement.")
-    listing = http.json("GET", "https://api.github.com/repos/" + REPOSITORY + "/actions/artifacts?per_page=100", env["GITHUB_TOKEN"])
-    if not isinstance(listing, dict) or not isinstance(listing.get("artifacts"), list):
-        raise ShutdownError("Backup artifact inventory was malformed.")
-    candidates = [a for a in listing["artifacts"] if isinstance(a, dict) and a.get("expired") is False
-                  and a.get("name", "").startswith("easy-street-shutdown-ledger-")
+    listing = stable_artifact_inventory(http, env["GITHUB_TOKEN"])
+    candidates = [a for a in listing if a.get("expired") is False
+                  and isinstance(a.get("name"), str) and a["name"].startswith("easy-street-shutdown-ledger-")
                   and a.get("workflow_run", {}).get("head_branch") == "main"]
     if not candidates:
         raise ShutdownError("No final backup artifact is available for recovery.")
