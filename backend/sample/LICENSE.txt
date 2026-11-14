@@ -1,0 +1,10 @@
+Small Garden Watering sample chapter
+
+Copyright (c) 2026 agammann
+
+The original sample chapter in chapter.txt, chapter.pdf and chapter.docx is
+licensed under the MIT License in the repository root. You may use, copy,
+modify, distribute and demonstrate it under those terms. It contains no
+third-party textbook passages. Keep this notice with redistributed samples.
+
+The chapter is a small demonstration text, not comprehensive gardening advice.

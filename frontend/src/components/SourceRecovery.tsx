@@ -4,14 +4,14 @@ import type { Course, Document } from '../types'
 import { Busy, Notice } from './Primitives'
 import { useMounted } from '../useMounted'
 
-export function SourceRecovery({ course, document, disabled, onAttached }: { course: Course; document: Document | null; disabled: boolean; onAttached: (course: Course, document: Document) => void }) {
+export function SourceRecovery({ course, document, disabled, onAttached, maxUpload = 15 }: { maxUpload?: number; course: Course; document: Document | null; disabled: boolean; onAttached: (course: Course, document: Document) => void }) {
   const input = useRef<HTMLInputElement>(null)
   const mounted = useMounted()
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   async function restore(file?: File) {
     if (!file || busy) return
-    if (file.size > 15 * 1024 * 1024) { setError('Choose the original source file, up to 15 MB.'); return }
+    if (file.size > maxUpload * 1024 * 1024) { setError(`Choose the original source file, up to ${maxUpload} MB.`); return }
     setBusy(true); setError('')
     try { const updated = await api.reattachSource(course.id, file); const source = await api.document(updated.document_id); if (mounted.current) onAttached(updated, source) } catch(e) { setError(errorMessage(e)) } finally { setBusy(false) }
   }

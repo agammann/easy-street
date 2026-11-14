@@ -1,13 +1,20 @@
-import type { Config, Course, Document, DocumentSummary, Estimate, Job, Usage, Version, Budget } from './types'
+import type { Config, Course, Document, DocumentSummary, Estimate, Job, Usage, Version, Budget, Session } from './types'
+
+let csrfToken: string | undefined
+export function setCsrfToken(value?: string) { csrfToken = value }
 
 export async function request<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const response = await fetch(`/api${path}`, { ...options, headers: { ...(options.body instanceof FormData ? {} : { 'Content-Type': 'application/json' }), ...options.headers } })
+  const headers = new Headers(options.headers)
+  if (!(options.body instanceof FormData)) headers.set('Content-Type', 'application/json')
+  if (csrfToken && !['GET', 'HEAD', 'OPTIONS'].includes((options.method ?? 'GET').toUpperCase())) headers.set('X-Easy-Street-CSRF', csrfToken)
+  const response = await fetch(`/api${path}`, { ...options, credentials: 'same-origin', headers })
   if (!response.ok) {
+    if (response.status === 401 && path !== '/session') window.dispatchEvent(new Event('easy-street-session-expired'))
     let message = `The request could not be completed (${response.status}).`
     try { const error = await response.json(); if (typeof error.detail === 'string') message = error.detail } catch { /* HTTP fallback */ }
     throw new Error(message)
   }
-  return response.json() as Promise<T>
+  return response.status === 204 ? undefined as T : response.json() as Promise<T>
 }
 const post = <T,>(path: string, data?: unknown) => request<T>(path, { method: 'POST', body: JSON.stringify(data ?? {}) })
 const patch = <T,>(path: string, data: unknown) => request<T>(path, { method: 'PATCH', body: JSON.stringify(data) })
@@ -28,6 +35,9 @@ async function generate(courseId: string, sectionId?: string) {
   return job
 }
 export const api = {
+  session: () => request<Session>('/session'),
+  signIn: (accessCode: string) => post<Session>('/session', { access_code: accessCode }),
+  deleteSession: () => request<void>('/session', { method: 'DELETE' }),
   config: () => request<Config>('/config'),
   courses: () => request<Course[]>('/courses'),
   documents: () => request<DocumentSummary[]>('/documents'),
@@ -35,6 +45,7 @@ export const api = {
   course: (id: string) => request<Course>(`/courses/${encodeURIComponent(id)}`),
   courseJob: (id: string) => request<Job | null>(`/courses/${encodeURIComponent(id)}/job`),
   sample: () => post<Document>('/documents/sample'),
+  sampleCourse: (requestId: string) => post<{ course: Course; document: Document; job: Job }>('/sample-course', { provider_disclosure_accepted: true, idempotency_key: requestId }),
   upload: (file: File, ocrPages?: number[]) => { const body = new FormData(); body.append('file', file); if (ocrPages?.length) body.append('ocr_pages', JSON.stringify(ocrPages)); return request<Document>('/documents', { method: 'POST', body }) },
   importCourse: (file: File) => { const body = new FormData(); body.append('file', file); return request<Course>('/courses/import', { method: 'POST', body }) },
   archiveCourse: (id: string, archived: boolean) => post<Course>(`/courses/${id}/archive`, { archived }),

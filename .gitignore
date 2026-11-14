@@ -5,7 +5,9 @@ frontend/dist/
 .env-setup-*
 .env.*
 !.env.example
+!deploy/.env.judging.example
 data/
+judging-data/
 *.sqlite*
 *.db
 __pycache__/

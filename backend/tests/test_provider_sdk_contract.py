@@ -105,7 +105,7 @@ def test_sdk_generation_and_verification_round_trip(provider_server):
 def test_sdk_incomplete_or_refusal_is_not_accepted(provider_server, body):
     provider, requests, replies = provider_server
     replies.append((200, body))
-    with pytest.raises(RuntimeError, match="incomplete or refused"):
+    with pytest.raises(RuntimeError, match="incomplete.*refused"):
         provider.verify({"sections": [], "passages": []})
     assert len(requests) == 1
 

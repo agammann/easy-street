@@ -1,11 +1,28 @@
 """Package public source and the built frontend, never local configuration or data."""
 import argparse
 import hashlib
-from pathlib import Path
+from pathlib import Path, PurePosixPath
+import re
 import subprocess
 import zipfile
 
 ROOT = Path(__file__).resolve().parents[1]
+PUBLIC_ENV_EXAMPLES = {".env.example", "deploy/.env.judging.example"}
+
+
+def validate_public_release_name(name):
+    """Accept only safe repository-relative paths and the two public env templates."""
+    path = PurePosixPath(name)
+    if (not name or path.is_absolute() or path.as_posix() != name or ".." in path.parts
+            or "\\" in name or ":" in name or any(ord(char) < 32 for char in name)):
+        raise ValueError("Release contains an unexpected path.")
+    if (any(part.lower().startswith(".env") for part in path.parts)
+            and name not in PUBLIC_ENV_EXAMPLES):
+        raise ValueError("Refusing to package private environment files.")
+    if any(part.lower() in ("data", "judging-data", ".venv", "node_modules", ".git") for part in path.parts):
+        raise ValueError("Refusing to package private runtime files.")
+    if re.search(r"\.(?:sqlite3?|db|log)(?:$|[-.])", path.name.lower()):
+        raise ValueError("Refusing to package runtime databases or logs.")
 
 
 def main():
@@ -32,10 +49,12 @@ def main():
         raise SystemExit("Generate and review THIRD_PARTY_NOTICES.txt before packaging a built frontend.")
     for name in files:
         path = Path(name)
-        if (path.name.startswith(".env") and path.name != ".env.example") or any(part in ("data",".venv","node_modules",".git") for part in path.parts):
-            raise SystemExit("Refusing to package private runtime files.")
-        if path.suffix.lower() in (".sqlite", ".sqlite3", ".db", ".log") or (ROOT / path).is_symlink():
-            raise SystemExit("Refusing to package runtime databases, logs, or symbolic links.")
+        try:
+            validate_public_release_name(name)
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from None
+        if any(ROOT.joinpath(*path.parts[:index]).is_symlink() for index in range(1, len(path.parts) + 1)):
+            raise SystemExit("Refusing to package symbolic links.")
     # Read canonical staged blobs so Windows worktree line endings cannot alter
     # the release source or break the executable macOS shell launcher. Stage all
     # final source changes before packaging; CI checks out the committed index.
