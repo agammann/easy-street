@@ -1,6 +1,6 @@
 # Automatic shutdown after judging
 
-The owner authorized automatic shutdown of the Easy Street Fly deployment after judging. **Status: the primary GitHub Actions workflow is active on `main`, and its real cloud rehearsal passed.** The December snapshot and cleanup stages have not occurred. Two real scheduled runs have now passed; the October 17 missed-check-in investigation and revised cadence are recorded below. The existing application expiry only disables application access; it does not remove Fly resources or stop hosting charges.
+The owner authorized automatic shutdown of the Easy Street Fly deployment after judging. **On November 17, 2026 Pacific time, GitHub reported the [retirement workflow](https://github.com/agammann/easy-street/actions/workflows/retire-judging.yml) as manually disabled.** The latest recorded scheduled run was October 21 at 00:06:50 UTC. The date gates below remain in the workflow definition. Scheduled cleanup cannot run while the workflow is disabled. The October rehearsal and missed-check-in investigation are historical evidence. Application expiry disables access separately from Fly resource retirement.
 
 The cleanup is restricted to **`easy-street-agammann-2026`**. It must not act on another application, change the inference allowance to create headroom, or call a model. The approved operating envelope remains $15 through December 15, including $3 aggregate inference; scheduling cleanup does not increase it. See [costs and operations](COSTS_AND_OPERATIONS.md).
 
@@ -11,13 +11,13 @@ The cleanup is restricted to **`easy-street-agammann-2026`**. It must not act on
 | Disable new volume snapshots | December 9, 2026, 20:30 UTC | December 9, 12:30 p.m. PST | Allow the configured five-day snapshot retention to elapse before cleanup |
 | Remove this deployment | December 15, 2026, 20:30 UTC | December 15, 12:30 p.m. PST | End hosting thirty minutes after the required judging period ends |
 
-The [official rules](https://nebiusglobalaihackathon.devpost.com/rules) currently end judging on December 15 at noon Pacific. Recheck for a changed judging deadline before the destructive stage. The workflow now requests a check every fifteen minutes, at minutes **7, 22, 37 and 52** of each hour. Its first normal eligible runs are therefore December 9 and December 15 at **20:37 UTC / 12:37 p.m. PST**, with later execution possible if GitHub delays a run. The six-day interval provides margin over five-day snapshot retention; it is not proof that snapshots disappeared.
+The [rules reviewed for the judging deployment](https://nebiusglobalaihackathon.devpost.com/rules) set the judging end at December 15 at noon Pacific. Recheck the deadline before the destructive stage. The workflow definition requests a check at minutes **7, 22, 37 and 52** of each hour. If the schedule is enabled, the first normal eligible runs are December 9 and December 15 at **20:37 UTC / 12:37 p.m. PST**, subject to GitHub delays. The six-day interval provides margin over five-day snapshot retention. Confirm the actual snapshot inventory during cleanup.
 
-The existing app expiry is `2026-12-16T08:00:00+00:00`, midnight PST at the end of December 15. Resource cleanup is scheduled earlier, after required judging ends. Neither date silently cancels a provider account or revokes its API keys.
+The recorded app expiry is `2026-12-16T08:00:00+00:00`, midnight PST at the end of December 15. The workflow's resource-cleanup gate is earlier, after the judging end. Provider account and key management are separate.
 
 ## Implemented controls
 
-The [workflow](../../.github/workflows/retire-judging.yml) and [fixed-target controller](../../scripts/fly_shutdown.py) reached the default branch through [PR #2](https://github.com/agammann/easy-street/pull/2), merged at **`089d24c7cff5d0fda89d686361dc7129dc185cf4`**. Workflow **`387359911`** is active. The scheduling-only [PR #3](https://github.com/agammann/easy-street/pull/3) subsequently reached `main` at **`eff7a5351fbaf3be739d112f8cff453c2049c25a`**, changing only the trigger cadence after missed check-ins. Its [CI run 39043362912](https://github.com/agammann/easy-street/actions/runs/39043362912) passed Linux and both Mac runners; the 35 mocked shutdown tests passed locally again. The reviewed change passed all three CI jobs in [run 39001672604](https://github.com/agammann/easy-street/actions/runs/39001672604), including **35 mocked shutdown tests**. This narrow operations merge does not merge the full hackathon application branch.
+The [workflow](../../.github/workflows/retire-judging.yml) and [fixed-target controller](../../scripts/fly_shutdown.py) reached the default branch through [PR #2](https://github.com/agammann/easy-street/pull/2), merged at **`089d24c7cff5d0fda89d686361dc7129dc185cf4`**. Workflow **`387359911`** was enabled for the October checks. The scheduling-only [PR #3](https://github.com/agammann/easy-street/pull/3) subsequently reached `main` at **`eff7a5351fbaf3be739d112f8cff453c2049c25a`**, changing only the trigger cadence after missed check-ins. Its [CI run 39043362912](https://github.com/agammann/easy-street/actions/runs/39043362912) passed Linux and both Mac runners; the 35 mocked shutdown tests passed locally again. The reviewed change passed all three CI jobs in [run 39001672604](https://github.com/agammann/easy-street/actions/runs/39001672604), including **35 mocked shutdown tests**.
 
 Actions holds the dedicated application-scoped Fly token under the secret name `EASY_STREET_SHUTDOWN_FLY_TOKEN`; it expires **December 24, 2026, 00:00 UTC**. The independent watchdog URL uses `EASY_STREET_SHUTDOWN_HEARTBEAT`. These are names, not credential values. The cleanup job has read-only repository/Actions permissions. A separate finish job has Actions write permission only to disable this workflow after the controller reports verified retirement. The default-branch schedule runs without the owner's PC.
 
@@ -59,7 +59,7 @@ Cleanup failure can leave hosting charges accruing and requires intervention. Th
 
 ## Activation evidence
 
-- [x] Fixed-application workflow and helper reviewed, tested with 35 mocks, and installed on the default branch; workflow active.
+- [x] Fixed-application workflow and helper reviewed, tested with 35 mocks, installed on the default branch, and enabled for the October checks.
 - [x] Application-scoped Fly token stored in an Actions secret; recorded expiry December 24, 00:00 UTC.
 - [x] Real cloud inventory/rehearsal verified one Machine, one volume, two IPs and zero snapshots without mutation or inference.
 - [x] Actual encrypted aggregate-only upload, download verification and separate local decryption passed without retaining visitor data.

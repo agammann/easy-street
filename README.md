@@ -8,9 +8,9 @@ Turn reading you already have into an editable personal course. Upload a PDF, DO
 
 Easy Street is free, MIT-licensed software that runs on your computer. **Bring your own OpenAI or Nebius Token Factory API key and pay the selected provider directly for live generation.** OpenAI remains the default for normal installations. The included offline demo needs no key.
 
-The public [hackathon branch](https://github.com/agammann/easy-street/tree/hackathon/nebius-nemotron-2026) adds Nebius/NVIDIA Nemotron and the [private judging demo](https://easy-street-agammann-2026.fly.dev), under review in [draft PR #1](https://github.com/agammann/easy-street/pull/1). **The published v1.0.0 download remains the earlier OpenAI release**; use the source instructions below for Nebius. See [verification](docs/hackathon/VERIFICATION.md) for actual live tests and remaining review limits.
+The default branch includes the Nebius/NVIDIA Nemotron adaptation merged in [PR #1](https://github.com/agammann/easy-street/pull/1). The earlier v1.0.1 download supports OpenAI. The separate [private judging demo](https://easy-street-agammann-2026.fly.dev) has its own access requirements and deployed revision. The [judging verification record](docs/hackathon/VERIFICATION.md) identifies which versions and provider calls were tested.
 
-The judging host has an active [automatic retirement workflow](docs/hackathon/AUTO_SHUTDOWN.md). It is date-gated until **December 15, 2026, 12:30 p.m. PST**, after the required noon judging end; the fifteen-minute trigger cadence normally first attempts cleanup at 12:37 p.m., subject to delay. It removes the approved compute, disk and IP resources after preserving encrypted aggregate accounting. Export temporary work before judging ends. Normal local installations are unaffected.
+The repository defines a [judging retirement workflow](docs/hackathon/AUTO_SHUTDOWN.md) with a date gate at **December 15, 2026, 12:30 p.m. PST**. On November 17, GitHub reported the schedule as manually disabled. The date gate remains in the definition, but scheduled retirement requires an enabled workflow. Export temporary work before judging ends.
 
 ## Features
 
@@ -26,7 +26,7 @@ Source checks and a separate model review can miss unsupported claims. Read the 
 
 ## Download and start
 
-Download **easy-street-1.0.1.zip** from the [latest release](https://github.com/agammann/easy-street/releases/latest), then extract the whole ZIP into a writable folder. This asset includes the built interface: **end users do not need Git, Node.js, or a frontend build**. GitHub's automatic source-code ZIP is a different download and still needs a build.
+Download the named **easy-street-…zip** application asset from the [latest release](https://github.com/agammann/easy-street/releases/latest) and extract it into a writable folder. This archive includes the built interface. The GitHub **Source code** archive requires the developer setup below.
 
 1. Install **Python 3.12** from [python.org](https://www.python.org/downloads/). Include the Python launcher on Windows.
 2. Open the extracted `easy-street` folder. On Windows double-click **Easy Street.cmd**. On macOS open **Easy Street.command**, or use the terminal command below. On Linux use the terminal command.
@@ -73,7 +73,7 @@ python3.12 launch.py --configure
 
 The terminal prompt hides the OpenAI key and saves it in ignored `.env.local`. It also accepts a cumulative local budget in USD; Enter keeps an existing value.
 
-For **Nebius Token Factory**, first follow [Build from source](#build-from-source), including `git switch hackathon/nebius-nemotron-2026` immediately after cloning. A fresh clone otherwise opens the earlier default branch; the v1.0.0 release ZIP does not contain the Nebius helper. From the hackathon source checkout with dependencies installed, use its separate masked helper:
+For **Nebius Token Factory**, use an application download from v1.0.2 onward or [build the default branch](#build-from-source). After the launcher's first-run setup, run the masked helper from the app folder:
 
 ```powershell
 # Windows
@@ -165,7 +165,7 @@ The approved [judging demo](https://easy-street-agammann-2026.fly.dev) is deploy
 
 The raw hosted sample remains **needs review**. Corrections were saved in a second copy while preserving the original result, and owner content review is pending. Exact quotations and automated checks do not guarantee that every claim follows from the chapter.
 
-Free availability and protected operator-attention monitoring are active, and the owner confirmed both incident and recovery emails. The emergency inference cutoff pauses generation and needs operator intervention; the operating budget is not a platform billing cap. [Verification](docs/hackathon/VERIFICATION.md) records exact tests, costs, runtime revision, and alert evidence; [operations](docs/hackathon/COSTS_AND_OPERATIONS.md) covers continued availability through judging. The [public 2:23 demo video](https://youtu.be/32g2rKhPAuE) and [submitted Devpost entry](https://devpost.com/software/easy-street) are available. The application PR remains a draft, and the earlier v1.0.0 release is unchanged.
+[Verification](docs/hackathon/VERIFICATION.md) records the dated availability and operator-attention checks, including confirmed incident and recovery emails. The emergency inference cutoff pauses generation and needs operator intervention. See [operations](docs/hackathon/COSTS_AND_OPERATIONS.md) for budget and hosting details. The [public 2:23 demo video](https://youtu.be/32g2rKhPAuE) and [submitted Devpost entry](https://devpost.com/software/easy-street) document the judging adaptation.
 
 Start with the [architecture](docs/hackathon/ARCHITECTURE.md), [costs and operations](docs/hackathon/COSTS_AND_OPERATIONS.md), [judge access guide](docs/hackathon/JUDGE_ACCESS.md), and [rules checklist](docs/hackathon/ELIGIBILITY.md). The [Fly configuration](deploy/fly.toml), [Render alternative](deploy/render.yaml), [Devpost entry record](docs/hackathon/DEVPOST_DRAFT.md), [video script](docs/hackathon/VIDEO_SCRIPT.md), and [license review](docs/hackathon/LICENSE_REVIEW.md) describe the deployed arrangement and remaining review gates. Do not expose a normal local workspace by changing its bind address.
 
@@ -173,12 +173,11 @@ Start with the [architecture](docs/hackathon/ARCHITECTURE.md), [costs and operat
 
 Developers need Git, Python 3.12, pnpm 10, and Node.js 22.22.2 or later in the 22.x line, 24.15.0 or later in the 24.x line, or 26 or newer. Release ZIP users do not need Node.js.
 
-The clone commands below explicitly select the public `hackathon/nebius-nemotron-2026` branch. This is required for Nebius/judging setup: the default branch and v1.0.0 still provide the earlier OpenAI application. The adaptation is under review in [draft PR #1](https://github.com/agammann/easy-street/pull/1). See the [verification report](docs/hackathon/VERIFICATION.md) and [current checks](https://github.com/agammann/easy-street/pull/1/checks) for test, packaging, and live-integration status.
+Build from the default `main` branch for both local providers. These commands start the personal local workspace. The judging gateway has separate credentials and deployment instructions.
 
 ```powershell
 git clone https://github.com/agammann/easy-street.git
 Set-Location easy-street
-git switch hackathon/nebius-nemotron-2026
 py -3.12 -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r backend/requirements-lock.txt
 npm.cmd install --global pnpm@10
@@ -192,7 +191,6 @@ Set-Location ..
 ```sh
 git clone https://github.com/agammann/easy-street.git
 cd easy-street
-git switch hackathon/nebius-nemotron-2026
 python3 -m venv .venv
 .venv/bin/python -m pip install -r backend/requirements-lock.txt
 npm install --global pnpm@10
@@ -226,7 +224,7 @@ See [COMPLETION_REPORT.md](COMPLETION_REPORT.md) for the published v1.0.0 result
 ## Troubleshooting and limits
 
 - **Missing Python:** install Python 3.12 and reopen the terminal. Linux may also need its Python venv package.
-- **Missing frontend:** download the release asset `easy-street-1.0.1.zip`, rather than GitHub's automatic source ZIP, or follow source build instructions.
+- **Missing frontend:** download the named Easy Street application ZIP or build the frontend using the source instructions.
 - **Port 8000 occupied:** stop the other backend with Ctrl+C; use only one server per data directory.
 - **Dependency setup failed:** check internet access and Python version, then rerun. Keep lockfiles intact.
 - **No configured key:** run the masked helper for the selected provider, check provider access/billing, and restart. Settings shows each provider separately. Offline demo remains available.

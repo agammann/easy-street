@@ -58,7 +58,7 @@ export function Outline({ course, document, config, onCourse, onGenerate, onBack
         <p className={totalsMatch ? 'field-help' : 'review-note'} aria-live="polite">Assigned: {assignments} / {course.options.assignments} written assignments · {quizzes} / {course.options.quizzes} quizzes. Totals must match your course settings.</p>
         {!validModules ? <p className="review-note">Each module needs a title, objectives, and source passages within the 24,000-character limit. Assign up to 2 written assignments and 2 quizzes per module.</p> : null}
         <button className="button secondary" onClick={() => void save()} disabled={loading || !title.trim() || !validModules || !totalsMatch}>{loading ? <Busy label="Saving…"/> : 'Save outline'}</button>
-      </div> : <><h2>{course.title}</h2><p className="difficulty">{course.difficulty} · {savedModules.length} module{savedModules.length === 1 ? '' : 's'} · {course.options.assignments} assignments · {course.options.quizzes} quizzes</p>
+      </div> : <><h2>{course.title}</h2><p className="difficulty">{course.difficulty} · {savedModules.length} module{savedModules.length === 1 ? '' : 's'} · {course.options.assignments} assignment{course.options.assignments === 1 ? '' : 's'} · {course.options.quizzes} quiz{course.options.quizzes === 1 ? '' : 'zes'}</p>
         {savedModules.map((module, index) => <div className="outline-module" key={module.id}><span className="module-number">{String(index + 1).padStart(2, '0')}</span><div><h3>{module.title}</h3><ul className="objective-list">{module.objectives.map((objective, i) => <li key={i}><Check size={16}/>{objective}</li>)}</ul><div className="distribution"><span>{module.assignments} written assignment{module.assignments === 1 ? '' : 's'}</span><span>{module.quizzes} quiz{module.quizzes === 1 ? '' : 'zes'} · {module.quizzes * course.options.questions_per_quiz} questions</span><span>{module.selected_passage_ids.length} source passages</span></div></div></div>)}
       </>}
     </div>
@@ -70,5 +70,27 @@ export function Outline({ course, document, config, onCourse, onGenerate, onBack
 }
 export function CostDialog({ estimate, demo, busy, onClose, onConfirm, regeneration = false, keyConfigured = true, provider = 'OpenAI', judging = false }: { provider?: string; judging?: boolean; estimate: Estimate; demo: boolean; busy: boolean; onClose: () => void; onConfirm: () => void; regeneration?: boolean; keyConfigured?: boolean }) {
   const needsKey = !demo && estimate.estimated_max_usd > 0 && !keyConfigured
-  return <Modal title={regeneration ? 'Regenerate this section?' : 'Ready for your next chapter?'} onClose={onClose}><div className="cost-total"><span>Estimated maximum for this step</span><strong>{money(estimate.estimated_max_usd)}</strong></div><p>{demo ? 'Offline demo. This uses prewritten sample content and does not contact a provider.' : estimate.estimated_max_usd === 0 ? 'Saved course content and its evidence review will be reused. No provider calls are needed for this cached result.' : `Selected excerpts will be sent to ${provider}, along with approved course and outline details. ${regeneration ? "The section ID and type will be sent, but the saved section text is not sent as generation context. " : ""}The support check also sends generated content and all selected excerpts for the module. Automatic retries are disabled. ${judging ? "The operator funds this bounded judging request." : "Your provider account pays for this request."}`}</p>{regeneration ? <Notice>Your current section is saved in version history before replacement. Other sections and manual edits remain in place.</Notice> : null}<dl className="details-list"><div><dt>{judging ? "Remaining demo budget" : "Remaining application budget"}</dt><dd>{money(estimate.budget.remaining_usd)}</dd></div><div><dt>Maximum output tokens</dt><dd>{estimate.output_tokens_limit.toLocaleString()}</dd></div><div><dt>Pricing checked</dt><dd>{estimate.pricing.updated}</dd></div></dl><p className="field-help">{estimate.notice || 'Estimates are not a provider-enforced billing guarantee. An in-flight request may still incur charges after cancellation.'}</p>{needsKey ? <Notice tone="warning">{judging ? "The operator needs to restore the demo server key before generation. Contact the project owner through the Devpost submission." : "Configure your backend API key using the README, restart the backend, and refresh Settings before starting this paid step."} Cached results with a zero estimate do not require a key.</Notice> : null}<div className="dialog-actions"><button className="button secondary" onClick={onClose} disabled={busy}>Go back</button><button className="button primary" onClick={onConfirm} disabled={busy || needsKey || estimate.estimated_max_usd > estimate.budget.remaining_usd}>{busy ? <Busy label="Starting…"/> : regeneration ? 'Regenerate section' : 'Approve & generate'}</button></div></Modal>
+  return <Modal title={regeneration ? 'Regenerate this section?' : 'Ready for your next chapter?'} onClose={onClose}>
+    <div className="cost-total">
+      <span>Estimated maximum for this step</span>
+      <strong>{money(estimate.estimated_max_usd)}</strong>
+    </div>
+    {demo ? <p>Offline demo. This uses prewritten sample content and does not contact a provider.</p> :
+      estimate.estimated_max_usd === 0 ? <p>Saved course content and its evidence review will be reused. No provider calls are needed for this cached result.</p> :
+      <p>Selected excerpts will be sent to {provider}, along with approved course and outline details. {regeneration ? "The section ID and type will be sent, but the saved section text is not sent as generation context. " : ""}The support check also sends generated content and all selected excerpts for the module. Automatic retries are disabled. {judging ? "The operator funds this bounded judging request." : "Your provider account pays for this request."}</p>}
+    {regeneration ? <Notice>Your current section is saved in version history before replacement. Other sections and manual edits remain in place.</Notice> : null}
+    {demo ? null : <>
+      <dl className="details-list">
+        <div><dt>{judging ? "Remaining demo budget" : "Remaining application budget"}</dt><dd>{money(estimate.budget.remaining_usd)}</dd></div>
+        <div><dt>Maximum output tokens</dt><dd>{estimate.output_tokens_limit.toLocaleString()}</dd></div>
+        <div><dt>Pricing checked</dt><dd>{estimate.pricing.updated}</dd></div>
+      </dl>
+      <p className="field-help">{estimate.notice || 'Estimates are not a provider-enforced billing guarantee. An in-flight request may still incur charges after cancellation.'}</p>
+    </>}
+    {needsKey ? <Notice tone="warning">{judging ? "The operator needs to restore the demo server key before generation. Contact the project owner through the Devpost submission." : "Configure your backend API key using the README, restart the backend, and refresh Settings before starting this paid step."} Cached results with a zero estimate do not require a key.</Notice> : null}
+    <div className="dialog-actions">
+      <button className="button secondary" onClick={onClose} disabled={busy}>Go back</button>
+      <button className="button primary" onClick={onConfirm} disabled={busy || needsKey || estimate.estimated_max_usd > estimate.budget.remaining_usd}>{busy ? <Busy label="Starting…"/> : regeneration ? 'Regenerate section' : 'Approve & generate'}</button>
+    </div>
+  </Modal>
 }
